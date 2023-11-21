@@ -42,6 +42,14 @@ info:
 
     Join WaSAPhoto and start sharing your special moments today!
 
+tags:
+  - name: "login"
+    description: "Everything about your session"
+  - name: "user"
+    description: "Everything about user"
+  - name: "post"
+    description: "Everything about your posts"
+
 paths:
   /session:
     post:
@@ -57,9 +65,11 @@ paths:
         content:
           application/json:
             schema:
+              description: TODO
               type: object
               properties:
                 name:
+                  description: TODO
                   type: string
                   example: Maria
                   pattern: '^.*?$'
@@ -73,9 +83,10 @@ paths:
           content:
             application/json:
               schema:
+                description: TODO
                 type: object
                 properties:
-                  userId:
+                  user_id:
                     $ref: '#/components/schemas/userID'
         "201":
           description: |
@@ -83,9 +94,10 @@ paths:
           content:
             application/json:
               schema:
+                description: TODO
                 type: object
                 properties:
-                  userID:
+                  user_id:
                     $ref: '#/components/schemas/userID'
         "400": { $ref: "#/components/responses/BadRequest" }
         "401": { $ref: '#/components/responses/UnauthorizedError' }
@@ -117,6 +129,7 @@ paths:
           content:
             application/json: 
               schema: 
+                description: TODO
                 type: object
                 properties: 
                   username:
@@ -146,9 +159,10 @@ paths:
         content: 
           application/json: 
             schema: 
+              description: TODO
               type: object
               properties:
-                newUsername:
+                new_username:
                   $ref: '#/components/schemas/username'
       
       responses:
@@ -161,7 +175,7 @@ paths:
         "401": { $ref: '#/components/responses/UnauthorizedError' }
         "500": { $ref: "#/components/responses/InternalServerError" }
 
-  /users/{uid}/posts/:
+  /users/{uid}/posts:
     parameters: 
       - name: uid
         in: path
@@ -193,6 +207,7 @@ paths:
           content: 
             application/json: 
               schema:
+                description: TODO
                 type: object
                 properties:
                   postid:
@@ -375,12 +390,16 @@ paths:
           content:
             application/json: 
               schema:
+                description: TODO
                 type: object
                 properties: 
                   profileinfo:
                     $ref: '#/components/schemas/profileinfo'
-                  uploaded-posts: 
+                  uploaded_posts: 
+                    description: TODO
                     type: array
+                    minItems: 0
+                    maxItems: 64
                     items: 
                       $ref: '#/components/schemas/post'
                   
@@ -416,11 +435,15 @@ paths:
             User stream photo correctly recovered from the server
           content:
             application/json: 
-              schema: 
+              schema:
+                description: TODO 
                 type: object
                 properties: 
                   posts:
+                    description: TODO
                     type: array
+                    minItems: 0
+                    maxItems: 64
                     items:
                       $ref: '#/components/schemas/post'
 
@@ -484,7 +507,7 @@ paths:
         "401": { $ref: "#/components/responses/UnauthorizedError" }
         "500": { $ref: "#/components/responses/InternalServerError" }
     
-  /posts/{postid}/comments/:
+  /posts/{postid}/comments:
     parameters:
       - name: postid
         in: path
@@ -510,6 +533,7 @@ paths:
         content: 
           application/json: 
             schema: 
+              description: TODO
               type: object
               properties:
                 comment:
@@ -521,6 +545,7 @@ paths:
           content: 
             application/json: 
               schema: 
+                description: TODO
                 type: object
                 properties: 
                   commentid:
@@ -573,19 +598,19 @@ components:
       example: Simone01
       minLength: 3
       maxLength: 20
+
     userID:
       title: the User ID
       description: the userID as an integer. Each user has it own uid.
-      type: number
-      format: int32
+      type: integer
       minimum: 1
       example: 100
+
     commentid:
       title: the comment ID
       description: |
         each comment submitted has it own id.
-      type: number
-      format: int32
+      type: integer
       minimum: 1
       example: 100
     user:
@@ -593,15 +618,14 @@ components:
       description: all the information about user
       type: object
       properties:
-        userId:
+        user_id:
           $ref: '#/components/schemas/userID'
         username:
           $ref: '#/components/schemas/username'
     postid:
       title: post ID
       description: the post ID as an integer
-      type: number
-      format: int32
+      type: integer
       minimum: 1
       example: 13244
     image:
@@ -609,6 +633,8 @@ components:
       description: the binary image of a post.
       type: string
       format: binary
+      minLength: 0
+      maxLength: 64
     comment:
       title: comment under a post
       description: represents a comment under a photo pubblished
@@ -622,14 +648,18 @@ components:
           title: message written
           description: the effective message of the comment
           type: string
+          minLength: 0
+          maxLength: 64
           pattern: ^[a-zA-Z0-9.,!?;:'"\s]+$
           example: this is a cr4zy comment!
-        comment-datetime:
+        comment_datetime:
           title: datetime posted comment
           description: |
             represents the date and the time of a post comment according
             to RFC 3339, section 5.6
           type: string
+          minLength: 19
+          maxLength: 19
           format: date-time
           example: 2017-07-21T17:32:28Z
     post:
@@ -644,27 +674,31 @@ components:
         likes:
           title: number of likes
           description: represents the like number of the photo
-          type: number
-          format: int32
+          type: integer
           minimum: 0
           example: 20
         comments:
           title: list of comments
           description: all the comments under a post
           type: array
+          minItems: 0
+          maxItems: 64
           items: 
             $ref: '#/components/schemas/comment'
-        upload-datetime:
+        upload_datetime:
           title: datetime post uploading
           description: |
             represents the date and the time of a post uploading according
             to RFC 3339, section 5.6
           type: string
+          minLength: 19
+          maxLength: 19
           format: date-time
           example: 2017-07-21T17:32:28Z
         image:
           $ref: '#/components/schemas/image'
     profileinfo:
+      description: TODO
       type: object
       properties: 
         uid:
@@ -672,21 +706,21 @@ components:
         username:
           $ref: '#/components/schemas/username'
         numpost:
+          description: TODO
           title: the number of uploaded post
-          type: number
-          format: int32
+          type: integer
           minimum: 0
           example: 10
         follower:
+          description: TODO
           title: the number of follower
-          type: number
-          format: int32
+          type: integer
           minimum: 0
           example: 10
         following:
+          description: TODO
           title: the number of following
-          type: number
-          format: int32
+          type: integer
           minimum: 0
           example: 10
         
@@ -702,11 +736,14 @@ components:
       content:
         application/json:
           schema:
+            description: TODO
             type: object
             properties:
               error:
                 description: verbose message error description returned by server
                 type: string
+                minLength: 0
+                maxLength: 64
                 pattern: '^.*?$'
                 example: you have to been logged for performing the action
     BadRequest:
@@ -715,18 +752,3 @@ components:
     InternalServerError:
       description: |
         The server encountered an internal error. Further info in server logs
-
-  parameters:
-    authID:
-      schema:
-        title: Authentication ID
-        description: |
-          the authentication id is the user's ID
-        type: number
-        format: int32
-        minimum: 1
-        example: 100
-      in: path
-      name: authID
-      required: true
-      description: the user authentication ID
