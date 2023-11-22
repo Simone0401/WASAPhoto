@@ -65,16 +65,17 @@ paths:
         content:
           application/json:
             schema:
-              description: TODO
+              description: |
+                is the username that a user wants to use for login
               type: object
               properties:
                 name:
-                  description: TODO
+                  description: name string. It can contain some special characters
                   type: string
                   example: Maria
                   pattern: '^.*?$'
                   minLength: 3
-                  maxLength: 16
+                  maxLength: 20
         required: true
       responses:
         "200":
@@ -83,7 +84,7 @@ paths:
           content:
             application/json:
               schema:
-                description: TODO
+                description: server responds with the integer associated to username
                 type: object
                 properties:
                   user_id:
@@ -94,7 +95,7 @@ paths:
           content:
             application/json:
               schema:
-                description: TODO
+                description: server responds with the user id created for the new username.
                 type: object
                 properties:
                   user_id:
@@ -129,7 +130,7 @@ paths:
           content:
             application/json: 
               schema: 
-                description: TODO
+                description: server returns to username associated to a uid.
                 type: object
                 properties: 
                   username:
@@ -159,7 +160,7 @@ paths:
         content: 
           application/json: 
             schema: 
-              description: TODO
+              description: represents the new username that user wants to set.
               type: object
               properties:
                 new_username:
@@ -207,7 +208,7 @@ paths:
           content: 
             application/json: 
               schema:
-                description: TODO
+                description: server returns the post id associated to the image just uploaded.
                 type: object
                 properties:
                   postid:
@@ -390,16 +391,19 @@ paths:
           content:
             application/json: 
               schema:
-                description: TODO
+                description: |
+                  server returns the entire profile of a user, 
+                  including all his personal information and
+                  all the post uploaded.
                 type: object
                 properties: 
                   profileinfo:
                     $ref: '#/components/schemas/profileinfo'
                   uploaded_posts: 
-                    description: TODO
+                    description: contains all the post as array of post object. 
                     type: array
                     minItems: 0
-                    maxItems: 64
+                    maxItems: 1000
                     items: 
                       $ref: '#/components/schemas/post'
                   
@@ -436,14 +440,15 @@ paths:
           content:
             application/json: 
               schema:
-                description: TODO 
+                description: |
+                  server returns an array of post object 
                 type: object
                 properties: 
                   posts:
-                    description: TODO
+                    description: each object is a post objects.
                     type: array
                     minItems: 0
-                    maxItems: 64
+                    maxItems: 1000
                     items:
                       $ref: '#/components/schemas/post'
 
@@ -533,7 +538,7 @@ paths:
         content: 
           application/json: 
             schema: 
-              description: TODO
+              description: post a comment under a post.
               type: object
               properties:
                 comment:
@@ -545,7 +550,7 @@ paths:
           content: 
             application/json: 
               schema: 
-                description: TODO
+                description: server retruns comment id associated to the post comment.
                 type: object
                 properties: 
                   commentid:
@@ -634,7 +639,7 @@ components:
       type: string
       format: binary
       minLength: 0
-      maxLength: 64
+      maxLength: 160000000
     comment:
       title: comment under a post
       description: represents a comment under a photo pubblished
@@ -649,7 +654,7 @@ components:
           description: the effective message of the comment
           type: string
           minLength: 0
-          maxLength: 64
+          maxLength: 256
           pattern: ^[a-zA-Z0-9.,!?;:'"\s]+$
           example: this is a cr4zy comment!
         comment_datetime:
@@ -682,7 +687,7 @@ components:
           description: all the comments under a post
           type: array
           minItems: 0
-          maxItems: 64
+          maxItems: 1000
           items: 
             $ref: '#/components/schemas/comment'
         upload_datetime:
@@ -698,7 +703,7 @@ components:
         image:
           $ref: '#/components/schemas/image'
     profileinfo:
-      description: TODO
+      description: consists in all the personal information of the user.
       type: object
       properties: 
         uid:
@@ -706,19 +711,19 @@ components:
         username:
           $ref: '#/components/schemas/username'
         numpost:
-          description: TODO
+          description: is the amount of all the post uploaded by the user.
           title: the number of uploaded post
           type: integer
           minimum: 0
           example: 10
         follower:
-          description: TODO
+          description: is the number of follower of the user.
           title: the number of follower
           type: integer
           minimum: 0
           example: 10
         following:
-          description: TODO
+          description: is the number of account followed by the user.
           title: the number of following
           type: integer
           minimum: 0
@@ -743,7 +748,7 @@ components:
                 description: verbose message error description returned by server
                 type: string
                 minLength: 0
-                maxLength: 64
+                maxLength: 256
                 pattern: '^.*?$'
                 example: you have to been logged for performing the action
     BadRequest:
