@@ -176,7 +176,7 @@ paths:
         "401": { $ref: '#/components/responses/UnauthorizedError' }
         "500": { $ref: "#/components/responses/InternalServerError" }
 
-  /users/{uid}/posts:
+  /users/{uid}/posts/:
     parameters: 
       - name: uid
         in: path
@@ -184,7 +184,7 @@ paths:
         description: the unique ID hooked to a user 
         schema: { $ref: '#/components/schemas/userID' }
 
-    put: 
+    post: 
       security: 
         - bearerAuth: []
       tags: 
@@ -192,7 +192,7 @@ paths:
       operationId: uploadPhoto
       summary: create a new post
       description: |
-        Upload a new post adding a photo.
+        Upload a new post adding a photo to the collection of posts.
         If the post id is already used, the request will fail.
         If the user in not authorized, the request will fail.
       requestBody: 
@@ -270,7 +270,7 @@ paths:
         - bearerAuth: []
       tags: 
         - "user"
-      operationId: followUsers
+      operationId: followUser
       summary: follow a user
       description: |
         the specified uid user want to follow another user.
@@ -512,7 +512,7 @@ paths:
         "401": { $ref: "#/components/responses/UnauthorizedError" }
         "500": { $ref: "#/components/responses/InternalServerError" }
     
-  /posts/{postid}/comments:
+  /posts/{postid}/comments/:
     parameters:
       - name: postid
         in: path
@@ -520,7 +520,7 @@ paths:
         description: the unique ID hooked to a post. 
         schema: { $ref: '#/components/schemas/postid' }
 
-    put:
+    post:
       security: 
         - bearerAuth: []
       tags: 
@@ -741,8 +741,8 @@ components:
       content:
         application/json:
           schema:
-            description: TODO
-            type: object
+            description: |
+              server returns a descriptive error message
             properties:
               error:
                 description: verbose message error description returned by server
@@ -750,10 +750,36 @@ components:
                 minLength: 0
                 maxLength: 256
                 pattern: '^.*?$'
-                example: you have to been logged for performing the action
+                example: log to do action
     BadRequest:
       description: |
         The request was not compliant with the documentation (eg. missing fields, etc)
+      content:
+        application/json:
+          schema:
+            description: |
+              server returns a descriptive error message
+            properties:
+              error:
+                description: verbose message error description returned by server
+                type: string
+                minLength: 0
+                maxLength: 256
+                pattern: '^.*?$'
+                example: not correct format
     InternalServerError:
       description: |
         The server encountered an internal error. Further info in server logs
+      content:
+        application/json:
+          schema:
+            description: |
+              server returns a descriptive error message
+            properties:
+              error:
+                description: verbose message error description returned by server
+                type: string
+                minLength: 0
+                maxLength: 256
+                pattern: '^.*?$'
+                example: something wrong
