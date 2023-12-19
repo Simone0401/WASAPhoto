@@ -38,14 +38,25 @@ import (
 
 // AppDatabase is the high level interface for the DB
 type AppDatabase interface {
-	GetName() (string, error)
-	SetName(name string) error
+	GetUsername(uid uint64) (string, error)
+	SetUsername(uid uint64, name string) error
+	GetUserByID(uid uint64) (User, error)
+	GetUserByUsername(username string) (User, error)
+	CheckExistsByUsername(username string) (bool, error)
+	CreateUser(username string) (User, error)
 
 	Ping() error
 }
 
 type appdbimpl struct {
 	c *sql.DB
+}
+
+// User struct represent a user in every API call between this package and the outside world.
+// Note that the internal representation of user in the database might be different.
+type User struct {
+	Userid   uint64
+	Username string `validate:"min=3, max=20"`
 }
 
 // New returns a new instance of AppDatabase based on the SQLite connection `db`.
@@ -55,15 +66,35 @@ func New(db *sql.DB) (AppDatabase, error) {
 		return nil, errors.New("database is required when building a AppDatabase")
 	}
 
-	// Check if table exists. If not, the database is empty, and we need to create the structure
-	var tableName string
-	err := db.QueryRow(`SELECT name FROM sqlite_master WHERE type='table' AND name='example_table';`).Scan(&tableName)
-	if errors.Is(err, sql.ErrNoRows) {
-		sqlStmt := `CREATE TABLE example_table (id INTEGER NOT NULL PRIMARY KEY, name TEXT);`
-		_, err = db.Exec(sqlStmt)
-		if err != nil {
-			return nil, fmt.Errorf("error creating database structure: %w", err)
-		}
+	// check if table User exists
+	err := checkTableUser(db)
+	if err != nil {
+		return nil, fmt.Errorf("error creating database structure for table user: %w", err)
+	}
+	// check if table Post exists
+	err = checkTablePost(db)
+	if err != nil {
+		return nil, fmt.Errorf("error creating database structure for table post: %w", err)
+	}
+	// check if table Comment exists
+	err = checkTableComment(db)
+	if err != nil {
+		return nil, fmt.Errorf("error creating database structure for table comment: %w", err)
+	}
+	// check if table Like exists
+	err = checkTableLike(db)
+	if err != nil {
+		return nil, fmt.Errorf("error creating database structure for table like: %w", err)
+	}
+	// check if table Follow exists
+	err = checkTableFollow(db)
+	if err != nil {
+		return nil, fmt.Errorf("error creating database structure for table follow: %w", err)
+	}
+	// check if table Ban exists
+	err = checkTableBan(db)
+	if err != nil {
+		return nil, fmt.Errorf("error creating database structure for table ban: %w", err)
 	}
 
 	return &appdbimpl{
@@ -73,4 +104,128 @@ func New(db *sql.DB) (AppDatabase, error) {
 
 func (db *appdbimpl) Ping() error {
 	return db.c.Ping()
+}
+
+/*
+ * checkTableUser check if User table already exists. If not exists, it will create that.
+ */
+func checkTableUser(db *sql.DB) error {
+	var tableName string
+	err := db.QueryRow(`SELECT name FROM sqlite_master WHERE type='table' AND name='user';`).Scan(&tableName)
+	if errors.Is(err, sql.ErrNoRows) {
+		sqlStmt := "CREATE TABLE user " +
+			"(uid INTEGER PRIMARY KEY, " +
+			"username TEXT NOT NULL CHECK(length(username) <= 20) UNIQUE);"
+		_, err = db.Exec(sqlStmt)
+		if err != nil {
+			return fmt.Errorf("error creating database structure: %w", err)
+		}
+	}
+	return nil
+}
+
+/*
+ * checkTablePost check if Post table already exists. If not exists, it will create that.
+ */
+func checkTablePost(db *sql.DB) error {
+	var tableName string
+	err := db.QueryRow(`SELECT name FROM sqlite_master WHERE type='table' AND name='post';`).Scan(&tableName)
+	if errors.Is(err, sql.ErrNoRows) {
+		sqlStmt := "CREATE TABLE post " +
+			"(postid INTEGER PRIMARY KEY, " +
+			"message TEXT CHECK(length(message) <= 265), " +
+			"uid INTEGER NOT NULL, " +
+			"FOREIGN KEY (uid) REFERENCES user(uid))"
+		_, err = db.Exec(sqlStmt)
+		if err != nil {
+			return fmt.Errorf("error creating database structure: %w", err)
+		}
+	}
+	return nil
+}
+
+/*
+ * checkTableComment check if Comment table already exists. If not exists, it will create that.
+ */
+func checkTableComment(db *sql.DB) error {
+	var tableName string
+	err := db.QueryRow(`SELECT name FROM sqlite_master WHERE type='table' AND name='comment';`).Scan(&tableName)
+	if errors.Is(err, sql.ErrNoRows) {
+		sqlStmt := "CREATE TABLE comment " +
+			"(commentid INTEGER PRIMARY KEY, " +
+			"imageid INTEGER NOT NULL UNIQUE, " +
+			"timestamp DATETIME, " +
+			"postid INTEGER NOT NULL, " +
+			"uid INTEGER NOT NULL, " +
+			"FOREIGN KEY (uid) REFERENCES user(uid), " +
+			"FOREIGN KEY (postid) REFERENCES post(postid))"
+		_, err = db.Exec(sqlStmt)
+		if err != nil {
+			return fmt.Errorf("error creating database structure: %w", err)
+		}
+	}
+	return nil
+}
+
+/*
+ * checkTableLike check if Like table already exists. If not exists, it will create that.
+ */
+func checkTableLike(db *sql.DB) error {
+	var tableName string
+	err := db.QueryRow(`SELECT name FROM sqlite_master WHERE type='table' AND name='like';`).Scan(&tableName)
+	if errors.Is(err, sql.ErrNoRows) {
+		sqlStmt := "CREATE TABLE like " +
+			"(uid INTEGER NOT NULL, " +
+			"postid INTEGER NOT NULL, " +
+			"PRIMARY KEY (uid, postid), " +
+			"FOREIGN KEY (uid) REFERENCES user(uid), " +
+			"FOREIGN KEY (postid) REFERENCES post(postid))"
+		_, err = db.Exec(sqlStmt)
+		if err != nil {
+			return fmt.Errorf("error creating database structure: %w", err)
+		}
+	}
+	return nil
+}
+
+/*
+ * checkTableFollow check if Follow table already exists. If not exists, it will create that.
+ */
+func checkTableFollow(db *sql.DB) error {
+	var tableName string
+	err := db.QueryRow(`SELECT name FROM sqlite_master WHERE type='table' AND name='follow';`).Scan(&tableName)
+	if errors.Is(err, sql.ErrNoRows) {
+		sqlStmt := "CREATE TABLE follow " +
+			"(uid INTEGER NOT NULL, " +
+			"fuid INTEGER NOT NULL, " +
+			"PRIMARY KEY (uid, fuid), " +
+			"FOREIGN KEY (uid) REFERENCES user(uid), " +
+			"FOREIGN KEY (fuid) REFERENCES user(uid))"
+		_, err = db.Exec(sqlStmt)
+		if err != nil {
+			return fmt.Errorf("error creating database structure: %w", err)
+		}
+	}
+	return nil
+}
+
+/*
+ * checkTableBan check if Follow table already exists. If not exists, it will create that.
+ */
+func checkTableBan(db *sql.DB) error {
+	var tableName string
+	err := db.QueryRow(`SELECT name FROM sqlite_master WHERE type='table' AND name='ban';`).Scan(&tableName)
+	if errors.Is(err, sql.ErrNoRows) {
+		sqlStmt := "CREATE TABLE ban " +
+			"(uid INTEGER NOT NULL, " +
+			"buid INTEGER NOT NULL, " +
+			"PRIMARY KEY (uid, buid), " +
+			"FOREIGN KEY (uid) REFERENCES user(uid), " +
+			"FOREIGN KEY (buid) REFERENCES user(uid))"
+		_, err = db.Exec(sqlStmt)
+		if err != nil {
+			return fmt.Errorf("error creating database structure: %w", err)
+		}
+	}
+	return nil
 }

@@ -34,9 +34,9 @@ import (
 	"os/signal"
 	"syscall"
 
-	"git.sapienzaapps.it/fantasticcoffee/fantastic-coffee-decaffeinated/service/api"
-	"git.sapienzaapps.it/fantasticcoffee/fantastic-coffee-decaffeinated/service/database"
-	"git.sapienzaapps.it/fantasticcoffee/fantastic-coffee-decaffeinated/service/globaltime"
+	"github.com/Simone0401/WASAPhoto/service/api"
+	"github.com/Simone0401/WASAPhoto/service/database"
+	"github.com/Simone0401/WASAPhoto/service/globaltime"
 	"github.com/ardanlabs/conf"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/sirupsen/logrus"
@@ -62,7 +62,7 @@ func main() {
 // * waits for any termination event: SIGTERM signal (UNIX), non-recoverable server error, etc.
 // * closes the principal web server
 func run() error {
-	rand.Seed(globaltime.Now().UnixNano())			// Random Number generator
+	rand.Seed(globaltime.Now().UnixNano()) // Random Number generator
 	// Load Configuration and defaults
 	cfg, err := loadConfiguration()
 	if err != nil {
@@ -83,6 +83,18 @@ func run() error {
 	}
 
 	logger.Infof("application initializing")
+
+	// Obtain working path
+	currentDir, err := os.Getwd()
+	if err != nil {
+		logger.Infof("Errore nell'ottenimento del percorso di lavoro")
+		return fmt.Errorf("errore ottenimento indirizzo")
+	}
+
+	// Show working path
+	logger.Infof("Current dir: {%s}", currentDir)
+
+	logger.Infof("Current dir DB: {%s}", cfg.DB.Filename)
 
 	// Start Database
 	logger.Println("initializing database support")
@@ -127,7 +139,7 @@ func run() error {
 	// il router è colui che connette il giusto handler
 	router := apirouter.Handler()
 
-	router, err = registerWebUI(router)				// registerWebUI ritorna un nuovo puntatotre al router dopo aver fatto determinati controlli
+	router, err = registerWebUI(router) // registerWebUI ritorna un nuovo puntatotre al router dopo aver fatto determinati controlli
 	if err != nil {
 		logger.WithError(err).Error("error registering web UI handler")
 		return fmt.Errorf("registering web UI handler: %w", err)
@@ -158,7 +170,7 @@ func run() error {
 		// Non-recoverable server error
 		return fmt.Errorf("server error: %w", err)
 
-	case sig := <-shutdown:			// canale basato sui seganli ricevuti dal Sistema Operativo
+	case sig := <-shutdown: // canale basato sui seganli ricevuti dal Sistema Operativo
 		logger.Infof("signal %v received, start shutdown", sig)
 
 		// Asking API server to shut down and load shed.
