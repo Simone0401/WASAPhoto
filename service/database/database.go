@@ -44,6 +44,9 @@ type AppDatabase interface {
 	GetUserByUsername(username string) (User, error)
 	CheckExistsByUsername(username string) (bool, error)
 	CreateUser(username string) (User, error)
+	HasFollowed(userid uint64, followuid uint64) (bool, error)
+	HasBanned(userid uint64, banneduid uint64) (bool, error)
+	FollowUser(userid uint64, banneduid uint64) (bool, error)
 
 	Ping() error
 }

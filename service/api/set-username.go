@@ -8,6 +8,9 @@ import (
 	"strconv"
 )
 
+// setUsername allows setting a new username for a user from his uid
+// The function will return the new User{} object if the username is not already set and
+// the user has the right Auth Token
 func (rt *_router) setUsername(w http.ResponseWriter, r *http.Request, params httprouter.Params, context reqcontext.RequestContext) {
 	// The User ID in the path is a 64-bit unsigned integer. Let's parse it.
 	uid, err := strconv.ParseUint(params.ByName("uid"), 10, 64)

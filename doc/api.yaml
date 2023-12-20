@@ -91,8 +91,6 @@ paths:
                     $ref: '#/components/schemas/userID'
                   username:
                     $ref: '#/components/schemas/username'
-                example: |
-                  {"user_id":1, "username":"Simone01"}
         "201":
           description: |
             User correctly created and log-in action successful
@@ -106,8 +104,6 @@ paths:
                     $ref: '#/components/schemas/userID'
                   username:
                     $ref: '#/components/schemas/username'
-                example: |
-                  {"user_id":1, "username":"Simone01"}
         "400": { $ref: "#/components/responses/BadRequest" }
         "401": { $ref: '#/components/responses/UnauthorizedError' }
         "500": { $ref: "#/components/responses/InternalServerError" }
@@ -296,7 +292,7 @@ paths:
       description: |
         the specified uid user want to follow another user.
         If the followed user is already followed, nothing change.
-        If the user id doesn't exists, the request will fail.
+        If the user id doesn't exist, the request will fail.
         If the followed user id doesn't exist, the request will fail.
         If the user in not authorized, the request will fail.
         User cannot follow himself.
@@ -314,8 +310,6 @@ paths:
                     $ref: '#/components/schemas/userID'
                   username:
                     $ref: '#/components/schemas/username'
-                example: |
-                  {"user_id":1, "username":"Simone01"}
         "400": { $ref: "#/components/responses/BadRequest" }
         "401": { $ref: "#/components/responses/UnauthorizedError" }
         "500": { $ref: "#/components/responses/InternalServerError" }
@@ -566,8 +560,6 @@ paths:
                     $ref: '#/components/schemas/userID'
                   username:
                     $ref: '#/components/schemas/username'
-                example: |
-                  {"user_id":1, "username":"Simone01"}
         "400": { $ref: "#/components/responses/BadRequest" }
         "401": { $ref: "#/components/responses/UnauthorizedError" }
         "500": { $ref: "#/components/responses/InternalServerError" }
@@ -746,7 +738,7 @@ components:
           minLength: 19
           maxLength: 19
           format: date-time
-          example: 2017-07-21T17:32:28Z
+          example: 2017-07-21T17:32:28
     post:
       title: post content
       description: |
@@ -779,7 +771,7 @@ components:
           minLength: 19
           maxLength: 19
           format: date-time
-          example: 2017-07-21T17:32:28Z
+          example: 2017-07-21T17:32:28
         image:
           $ref: '#/components/schemas/image'
     profileinfo:

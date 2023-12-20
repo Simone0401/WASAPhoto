@@ -14,6 +14,8 @@ func (rt *_router) Handler() http.Handler {
 	rt.router.GET("/users/:uid/username", rt.wrap(rt.getUsername, true))
 	rt.router.PUT("/users/:uid/username", rt.wrap(rt.setUsername, true))
 
+	rt.router.PUT("/users/:uid/following/:fuid", rt.wrap(rt.followUser, true))
+
 	// Special routes
 	rt.router.GET("/liveness", rt.liveness)
 	return rt.router
