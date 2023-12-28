@@ -16,6 +16,10 @@ func (rt *_router) Handler() http.Handler {
 
 	rt.router.PUT("/users/:uid/following/:fuid", rt.wrap(rt.followUser, true))
 	rt.router.DELETE("/users/:uid/following/:fuid", rt.wrap(rt.unfollowUser, true))
+
+	rt.router.PUT("/users/:uid/muted/:muteduid", rt.wrap(rt.banUser, true))
+	rt.router.DELETE("/users/:uid/muted/:muteduid", rt.wrap(rt.unbanUser, true))
+
 	// Special routes
 	rt.router.GET("/liveness", rt.liveness)
 	return rt.router

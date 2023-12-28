@@ -359,7 +359,7 @@ paths:
       description: |
         the specified uid user want to follow another user.
         If the banned user is already banned, nothing change.
-        If the user id doesn't exists, the request will fail.
+        If the user id doesn't exist, the request will fail.
         If the banned user id doesn't exist, the request will fail.
         If the user in not authorized, the request will fail.
         User cannot ban himself.
@@ -378,6 +378,22 @@ paths:
 
         "400": { $ref: "#/components/responses/BadRequest" }
         "401": { $ref: "#/components/responses/UnauthorizedError" }
+        "404":
+          description: |
+            the searched user to mute seems not exists
+          content:
+            application/json:
+              schema:
+                description: server returns a not found message
+                type: object
+                properties:
+                  error:
+                    description: verbose message error description returned by server
+                    type: string
+                    minLength: 0
+                    maxLength: 256
+                    pattern: '^.*?$'
+                    example: muteduid not found
         "500": { $ref: "#/components/responses/InternalServerError" }
 
     delete:

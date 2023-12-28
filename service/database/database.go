@@ -48,6 +48,9 @@ type AppDatabase interface {
 	HasBanned(userid uint64, banneduid uint64) (bool, error)
 	FollowUser(userid uint64, banneduid uint64) (bool, error)
 	UnfollowUser(userid uint64, followuid uint64) (bool, error)
+	HasMuted(userid uint64, muteduid uint64) (bool, error)
+	BanUser(userid uint64, muteduid uint64) (bool, error)
+	UnbanUser(userid uint64, muteduid uint64) (bool, error)
 
 	Ping() error
 }

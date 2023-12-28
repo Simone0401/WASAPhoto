@@ -54,7 +54,7 @@ func (rt *_router) unfollowUser(w http.ResponseWriter, r *http.Request, params h
 		w.WriteHeader(http.StatusUnauthorized)
 
 		response := map[string]string{
-			"error": "log to perform the action",
+			"error": "login to perform the action",
 		}
 
 		_ = json.NewEncoder(w).Encode(response)

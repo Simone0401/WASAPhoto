@@ -55,7 +55,7 @@ func (rt *_router) followUser(w http.ResponseWriter, r *http.Request, params htt
 		w.WriteHeader(http.StatusUnauthorized)
 
 		response := map[string]string{
-			"error": "log to perform the action",
+			"error": "login to perform the action",
 		}
 
 		_ = json.NewEncoder(w).Encode(response)
