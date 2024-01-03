@@ -51,6 +51,7 @@ type AppDatabase interface {
 	HasMuted(userid uint64, muteduid uint64) (bool, error)
 	BanUser(userid uint64, muteduid uint64) (bool, error)
 	UnbanUser(userid uint64, muteduid uint64) (bool, error)
+	AddPost(userid uint64) (uint64, error)
 
 	Ping() error
 }
@@ -140,7 +141,6 @@ func checkTablePost(db *sql.DB) error {
 	if errors.Is(err, sql.ErrNoRows) {
 		sqlStmt := "CREATE TABLE post " +
 			"(postid INTEGER PRIMARY KEY, " +
-			"message TEXT CHECK(length(message) <= 265), " +
 			"uid INTEGER NOT NULL, " +
 			"FOREIGN KEY (uid) REFERENCES user(uid))"
 		_, err = db.Exec(sqlStmt)
@@ -160,7 +160,7 @@ func checkTableComment(db *sql.DB) error {
 	if errors.Is(err, sql.ErrNoRows) {
 		sqlStmt := "CREATE TABLE comment " +
 			"(commentid INTEGER PRIMARY KEY, " +
-			"imageid INTEGER NOT NULL UNIQUE, " +
+			"message TEXT CHECK(length(message) <= 265), " +
 			"timestamp DATETIME, " +
 			"postid INTEGER NOT NULL, " +
 			"uid INTEGER NOT NULL, " +

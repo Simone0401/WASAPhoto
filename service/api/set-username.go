@@ -16,7 +16,7 @@ func (rt *_router) setUsername(w http.ResponseWriter, r *http.Request, params ht
 	uid, err := strconv.ParseUint(params.ByName("uid"), 10, 64)
 
 	if err != nil {
-		context.Logger.Error("Error parsing uid")
+		context.Logger.Error("Error parsing uid in uploading request.")
 		w.WriteHeader(http.StatusBadRequest)
 
 		response := map[string]string{
@@ -29,7 +29,7 @@ func (rt *_router) setUsername(w http.ResponseWriter, r *http.Request, params ht
 
 	// check if the Bearer Authorization Token is set
 	if !rt.isAuthorized(r.Header) {
-		context.Logger.Error("The bearer format token is not valid!")
+		context.Logger.Error("The bearer format token is not valid for uploading a post!")
 		w.Header().Add("Content-Type", "application/json")
 		w.WriteHeader(http.StatusUnauthorized)
 
@@ -44,7 +44,7 @@ func (rt *_router) setUsername(w http.ResponseWriter, r *http.Request, params ht
 	// check if the current user is authorized
 	currentUid := context.Uid
 	if currentUid != uid {
-		context.Logger.Error("Error retrieving the current uid that makes request")
+		context.Logger.Error("Error retrieving the current uid that makes uploading request")
 		w.WriteHeader(http.StatusForbidden)
 		return
 	}
@@ -59,7 +59,7 @@ func (rt *_router) setUsername(w http.ResponseWriter, r *http.Request, params ht
 	} else if !user.IsValid() {
 		// Here we validated the user structure content (e.g., username has correct format)
 		// Note: the IsValid() function skips the ID check.
-		context.Logger.Error("Error, User structure is not valid!")
+		context.Logger.Error("Error, User structure is not valid!\nDetail: ", err.Error())
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}

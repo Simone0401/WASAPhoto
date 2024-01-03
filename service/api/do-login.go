@@ -26,6 +26,7 @@ func (rt *_router) doLogin(w http.ResponseWriter, r *http.Request, params httpro
 
 	// check if the username is valid
 	if !user.IsValid() {
+		context.Logger.Error("Login username format is invalid")
 		http.Error(w, "Username format is not valid!", http.StatusBadRequest)
 		return
 	}

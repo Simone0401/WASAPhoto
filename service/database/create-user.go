@@ -9,7 +9,7 @@ func (db *appdbimpl) CreateUser(username string) (User, error) {
 	// RECOVER MAX(ID)
 	err := db.c.QueryRow("SELECT MAX(uid) FROM user").Scan(&maxId)
 	if err != nil {
-		return User{0, ""}, err
+		maxId = 0
 	}
 
 	setId := maxId + 1

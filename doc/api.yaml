@@ -50,6 +50,9 @@ tags:
   - name: "post"
     description: "Everything about your posts"
 
+servers:
+  - url: http://localhost:3000
+
 paths:
   /session:
     post:
@@ -210,8 +213,8 @@ paths:
       summary: create a new post
       description: |
         Upload a new post adding a photo to the collection of posts.
-        If the post id is already used, the request will fail.
         If the user in not authorized, the request will fail.
+        If the MIME type is not PNG or JPEG the request will fail.
       requestBody:
         description: the image to upload as post.
         required: true
