@@ -1,6 +1,6 @@
 package database
 
-// GetUserame allows getting the string username value for a specific uid
+// GetUsername allows getting the string username value for a specific uid
 func (db *appdbimpl) GetUsername(uid uint64) (string, error) {
 	var username string
 	err := db.c.QueryRow(`SELECT username FROM user WHERE uid=?`, uid).Scan(&username)

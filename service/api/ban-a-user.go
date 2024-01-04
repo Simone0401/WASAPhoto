@@ -152,5 +152,4 @@ func (rt *_router) banUser(w http.ResponseWriter, r *http.Request, params httpro
 	}
 
 	_ = json.NewEncoder(w).Encode(map[string]User{"muted_user_info": user})
-	return
 }

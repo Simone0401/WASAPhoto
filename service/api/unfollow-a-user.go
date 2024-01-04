@@ -124,5 +124,4 @@ func (rt *_router) unfollowUser(w http.ResponseWriter, r *http.Request, params h
 		}
 	}
 	w.WriteHeader(http.StatusNoContent)
-	return
 }

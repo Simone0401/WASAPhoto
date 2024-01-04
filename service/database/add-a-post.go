@@ -13,7 +13,7 @@ func (db *appdbimpl) AddPost(userid uint64) (uint64, error) {
 
 	postid := maxId + 1
 
-	_, err = db.c.Exec("INSERT INTO post(postid, uid) VALUES (?, ?)", postid, userid)
+	_, err = db.c.Exec("INSERT INTO post VALUES (?, ?, (SELECT datetime('now', '+1 hours')))", postid, userid)
 
 	if err != nil {
 		return 0, err

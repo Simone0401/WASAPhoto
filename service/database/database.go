@@ -43,6 +43,7 @@ type AppDatabase interface {
 	GetUserByID(uid uint64) (User, error)
 	GetUserByUsername(username string) (User, error)
 	CheckExistsByUsername(username string) (bool, error)
+	CheckExistsByUID(uid uint64) (bool, error)
 	CreateUser(username string) (User, error)
 	HasFollowed(userid uint64, followuid uint64) (bool, error)
 	HasBanned(userid uint64, banneduid uint64) (bool, error)
@@ -52,6 +53,7 @@ type AppDatabase interface {
 	BanUser(userid uint64, muteduid uint64) (bool, error)
 	UnbanUser(userid uint64, muteduid uint64) (bool, error)
 	AddPost(userid uint64) (uint64, error)
+	CheckPostByPostid(postid uint64) (bool, error)
 
 	Ping() error
 }
@@ -142,6 +144,7 @@ func checkTablePost(db *sql.DB) error {
 		sqlStmt := "CREATE TABLE post " +
 			"(postid INTEGER PRIMARY KEY, " +
 			"uid INTEGER NOT NULL, " +
+			"timestamp DATETIME, " +
 			"FOREIGN KEY (uid) REFERENCES user(uid))"
 		_, err = db.Exec(sqlStmt)
 		if err != nil {

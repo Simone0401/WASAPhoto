@@ -499,8 +499,9 @@ paths:
       operationId: getMyStream
       summary: get user stream photos.
       description: |
-        allows getting user stream photos passing the uid.
+        Allows getting user stream photos passing the uid.
         The stream consists in an array of post.
+        For getting a binary image it's necessary using the 'Get Image API'
       responses:
         '200':
           description: |
@@ -641,7 +642,7 @@ paths:
           content:
             application/json:
               schema:
-                description: server retruns comment id associated to the post comment.
+                description: server returns comment id associated to the post comment.
                 type: object
                 properties:
                   commentid:
@@ -673,8 +674,8 @@ paths:
       description: |
         User can delete a comment from post, if he is the comment author.
         If the post id doesn't exist, the request will fail.
-        If the user in not authorized, the request will fail.
         If the user id doesn't exist, the request will fail.
+        If the user in not authorized, the request will fail.
 
       responses:
         "204":
@@ -682,6 +683,56 @@ paths:
         "400": { $ref: "#/components/responses/BadRequest" }
         "401": { $ref: "#/components/responses/UnauthorizedError" }
         "500": { $ref: "#/components/responses/InternalServerError" }
+
+  /images/{imageid}:
+    parameters:
+      - name: imageid
+        in: path
+        required: true
+        description: |
+          the unique id hooked to an image of a post. It's the same of postid.
+        schema: { $ref: '#/components/schemas/postid' }
+
+    get:
+      security:
+        - bearerAuth: []
+      tags:
+        - "post"
+      operationId: getImage
+      summary: get an image
+      description: |
+        User can recover an image passing the image ID.
+        If the user id doesn't exist, the request will fail.
+        If the user is not authorized, the request will fail.
+        Note: image id is the same of post id.
+
+      responses:
+        200:
+          description: image correctly downloaded.
+          content:
+            image/*:
+              schema:
+                $ref: "#/components/schemas/image"
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/UnauthorizedError" }
+        "404":
+          description: |
+            the searched image seems not exists
+          content:
+            application/json:
+              schema:
+                description: server returns a not found message
+                type: object
+                properties:
+                  error:
+                    description: verbose message error description returned by server
+                    type: string
+                    minLength: 0
+                    maxLength: 256
+                    pattern: '^.*?$'
+                    example: image not found
+        "500": { $ref: "#/components/responses/InternalServerError" }
+
 
 # 1) Define the security scheme type (HTTP bearer)
 components:
@@ -752,12 +803,12 @@ components:
           title: datetime posted comment
           description: |
             represents the date and the time of a post comment according
-            to RFC 3339, section 5.6
+            to format YYYY-MM-DD HH:MM:SS
           type: string
           minLength: 19
           maxLength: 19
           format: date-time
-          example: 2017-07-21T17:32:28
+          example: 2017-07-21 17:32:28
     post:
       title: post content
       description: |
@@ -775,7 +826,7 @@ components:
           example: 20
         comments:
           title: list of comments
-          description: all the comments under a post
+          description: all the comments under a post in reverse chronological order
           type: array
           minItems: 0
           maxItems: 1000
@@ -785,14 +836,12 @@ components:
           title: datetime post uploading
           description: |
             represents the date and the time of a post uploading according
-            to RFC 3339, section 5.6
+            to format YYYY-MM-DD HH:MM:SS
           type: string
           minLength: 19
           maxLength: 19
           format: date-time
-          example: 2017-07-21T17:32:28
-        image:
-          $ref: '#/components/schemas/image'
+          example: 2017-07-21 17:32:28
     profileinfo:
       description: consists in all the personal information of the user.
       type: object

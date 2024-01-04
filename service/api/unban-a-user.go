@@ -111,5 +111,4 @@ func (rt *_router) unbanUser(w http.ResponseWriter, r *http.Request, params http
 	}
 
 	w.WriteHeader(http.StatusNoContent)
-	return
 }
