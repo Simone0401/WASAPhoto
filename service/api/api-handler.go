@@ -29,6 +29,14 @@ func (rt *_router) Handler() http.Handler {
 	rt.router.GET("/images/:imageid", rt.wrap(rt.getImage, true))
 	rt.router.DELETE("/users/:uid/posts/:postid", rt.wrap(rt.deletePost, true))
 
+	/* Section LIKE */
+	rt.router.PUT("/posts/:postid/likes/:uid", rt.wrap(rt.likePost, true))
+	rt.router.DELETE("/posts/:postid/likes/:uid", rt.wrap(rt.unlikePost, true))
+
+	/* Section COMMENT */
+	rt.router.POST("/posts/:postid/comments/", rt.wrap(rt.commentPost, true))
+	rt.router.DELETE("/posts/:postid/comments/:commentid", rt.wrap(rt.uncommentPost, true))
+
 	/* ======== SPECIAL ROUTES ========= */
 	rt.router.GET("/liveness", rt.liveness)
 	return rt.router

@@ -6,7 +6,8 @@ import (
 )
 
 const (
-	UserUsernameRegex string = "^[A-Za-z0-9]{3,20}$"
+	UserUsernameRegex   string = "^[A-Za-z0-9]{3,20}$"
+	MessageCommentRegex string = "^[a-zA-Z0-9.,!?;:'\"\\s]+$"
 )
 
 // User struct represent a user in every data exchange with the external world via REST API. JSON tags have been
@@ -15,6 +16,17 @@ const (
 type User struct {
 	Userid   uint64 `json:"user_id"`
 	Username string `json:"username" validate:"min=3, max=20"`
+}
+
+// Comment struct represent a comment in every data exchange with the external world via REST API. JSON tags have been
+// added to the struct to conform to the OpenAPI specifications regarding JSON key names.
+// Note: there is a similar struct in the database package.
+type Comment struct {
+	Commentid uint64 `json:"id"`
+	Userid    uint64 `json:"uid"`
+	Postid    uint64 `json:"postid"`
+	Message   string `json:"message" validate:"min=1, max=256"`
+	Datetime  string `json:"comment_datetime"`
 }
 
 // FromDatabase populates the struct with data from the database, overwriting all values.
@@ -39,9 +51,37 @@ func (u *User) ToDatabase() database.User {
 	}
 }
 
+// FromDatabase populates the struct with data from the database, overwriting all values.
+func (c *Comment) FromDatabase(comment database.Comment) error {
+	c.Commentid = comment.Commentid
+	c.Userid = comment.Userid
+	c.Postid = comment.Postid
+	c.Message = comment.Message
+	c.Datetime = comment.Datetime
+	return nil
+}
+
+// ToDatabase returns comment in a database-compatible representation
+func (c *Comment) ToDatabase() database.Comment {
+	return database.Comment{
+		Commentid: c.Commentid,
+		Userid:    c.Userid,
+		Postid:    c.Postid,
+		Message:   c.Message,
+		Datetime:  c.Datetime,
+	}
+}
+
 // IsValid checks the validity of the content. In particular, username should be in its range of validity.
 // Note that the ID is not checked.
 func (u *User) IsValid() bool {
 	regexPattern := regexp.MustCompile(UserUsernameRegex)
 	return regexPattern.MatchString(u.Username) && len(u.Username) > 2 && len(u.Username) < 21
+}
+
+// IsValid checks the validity of the content. In particular, comment message should be in it range of validity.
+// Note that ID is not checked.
+func (c *Comment) IsValid() bool {
+	regexPattern := regexp.MustCompile(MessageCommentRegex)
+	return regexPattern.MatchString(c.Message) && len(c.Message) > 0 && len(c.Message) < 257
 }

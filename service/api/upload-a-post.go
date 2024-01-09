@@ -6,12 +6,8 @@ import (
 	"fmt"
 	"github.com/Simone0401/WASAPhoto/service/api/reqcontext"
 	"github.com/julienschmidt/httprouter"
-	_ "image/jpeg"
-	_ "image/png"
 	"io"
 	"net/http"
-	"os"
-	"path/filepath"
 	"strconv"
 	"strings"
 )
@@ -134,55 +130,4 @@ func (rt *_router) uploadPost(w http.ResponseWriter, r *http.Request, params htt
 
 	w.WriteHeader(http.StatusCreated)
 	_ = json.NewEncoder(w).Encode(result)
-}
-
-// detectImageType allows to determine if the MIME type is a PNG or a JPEG
-// If the type is neither PNG nor JPEG it will return ""
-func detectImageType(data []byte, context *reqcontext.RequestContext) string {
-	dataType := http.DetectContentType(data)
-	context.Logger.Info("Detected dataType: ", dataType)
-	switch dataType {
-	case "image/jpeg":
-		return "jpeg"
-	case "image/png":
-		return "png"
-	default:
-		return ""
-	}
-}
-
-// createDir allows to create a complete path
-// If the folders in the path are already created, nothing happens
-func createDirs(path string) error {
-	if _, err := os.Stat(path); os.IsNotExist(err) {
-		err := os.MkdirAll(path, 0755)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-// saveImage allows to save an image file in a specific directory
-func saveImage(body io.Reader, directory, filename string) error {
-
-	// Make complete path file
-	filePath := filepath.Join(directory, filename)
-
-	// Make or open file for writing
-	file, err := os.Create(filePath)
-	if err != nil {
-		return err
-	}
-	defer func(file *os.File) {
-		_ = file.Close()
-	}(file)
-
-	// Copy image content on file
-	_, err = io.Copy(file, body)
-	if err != nil {
-		return err
-	}
-
-	return nil
 }

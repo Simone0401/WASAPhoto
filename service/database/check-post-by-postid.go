@@ -4,6 +4,6 @@ package database
 // Request will fail if post id doesn't exist
 func (db *appdbimpl) CheckPostByPostid(postid uint64) (bool, error) {
 	var count int
-	err := db.c.QueryRow("SELECT COUNT(*) FROM from WHERE postid = ?", postid).Scan(&count)
+	err := db.c.QueryRow("SELECT COUNT(*) FROM post WHERE postid = ?", postid).Scan(&count)
 	return count > 0, err
 }

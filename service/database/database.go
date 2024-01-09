@@ -54,6 +54,15 @@ type AppDatabase interface {
 	UnbanUser(userid uint64, muteduid uint64) (bool, error)
 	AddPost(userid uint64) (uint64, error)
 	CheckPostByPostid(postid uint64) (bool, error)
+	RemoveCommentsFromPost(postid uint64) error
+	RemoveLikesFromPost(postid uint64) error
+	RemovePost(postid uint64, userid uint64) error
+	LikePost(postid uint64, userid uint64) error
+	UnlikePost(postid uint64, userid uint64) error
+	AddComment(userid uint64, postid uint64, message string) (Comment, error)
+	CheckCommentOwner(commentid uint64, userid uint64) (bool, error)
+	CheckCommentByCommentid(commentid uint64) (bool, error)
+	DeleteComment(commentid uint64) error
 
 	Ping() error
 }
@@ -62,11 +71,21 @@ type appdbimpl struct {
 	c *sql.DB
 }
 
-// User struct represent a user in every API call between this package and the outside world.
+// User struct represents a user in every API call between this package and the outside world.
 // Note that the internal representation of user in the database might be different.
 type User struct {
 	Userid   uint64
 	Username string `validate:"min=3, max=20"`
+}
+
+// Comment struct represents a comment in every API call between this package and the outside world.
+// Note that the internal representation of comment in the database might be different.
+type Comment struct {
+	Commentid uint64
+	Userid    uint64
+	Postid    uint64
+	Message   string `validate:"min=1, max=256"`
+	Datetime  string
 }
 
 // New returns a new instance of AppDatabase based on the SQLite connection `db`.

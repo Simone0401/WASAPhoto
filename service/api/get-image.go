@@ -56,6 +56,7 @@ func (rt *_router) getImage(w http.ResponseWriter, r *http.Request, params httpr
 
 	// File doesn't exist
 	if fileName == "" {
+		context.Logger.Error("Requested image doesn't exist")
 		http.Error(w, "Images seems not exist", http.StatusNotFound)
 		return
 	}
@@ -80,51 +81,7 @@ func (rt *_router) getImage(w http.ResponseWriter, r *http.Request, params httpr
 		w.Header().Set("Content-Type", "image/jpeg")
 	}
 
-	w.WriteHeader(http.StatusOK)
-
 	// Now return the binary image
+	// NOTE: w.WriteHeader(http.StatusOK) is unnecessary because http.ServeContent already set it
 	http.ServeContent(w, r, fileName, fileInfo.ModTime(), imageFile)
-}
-
-// imageExists checks if an image exists. The function check both PNG and JPEG format.
-// if the image exists, function will return the full namepath, otherwise return ""
-func imageExists(fileName string, filePath string) (string, error) {
-
-	checkImage := func(filePath string) (bool, error) {
-		_, err := os.Stat(filePath)
-
-		if err == nil {
-			// File exists
-			return true, nil
-		}
-
-		if os.IsNotExist(err) {
-			// Image doesn't exist
-			return false, nil
-		}
-
-		// There's something wrong, check permissions
-		return false, err
-	}
-
-	pngName := fileName + ".png"
-	jpegName := fileName + ".jpeg"
-
-	// First check PNG
-	fullNamePath := filePath + "/" + pngName
-	if exists, err := checkImage(fullNamePath); err != nil {
-		return "", err
-	} else if exists {
-		return fullNamePath, nil
-	}
-
-	// Check for JPEG
-	fullNamePath = filePath + "/" + jpegName
-	if exists, err := checkImage(fullNamePath); err != nil {
-		return "", err
-	} else if exists {
-		return fullNamePath, nil
-	}
-
-	return "", nil
 }
