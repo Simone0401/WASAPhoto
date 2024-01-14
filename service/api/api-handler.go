@@ -7,7 +7,7 @@ import (
 // Handler returns an instance of httprouter.Router that handle APIs registered here
 func (rt *_router) Handler() http.Handler {
 	// Register routes
-	rt.router.GET("/", rt.getHelloWorld)
+	rt.router.GET("/", rt.wrap(rt.doLogin, false))
 
 	/* ======== LOGIN API ========= */
 	rt.router.POST("/session", rt.wrap(rt.doLogin, false))
@@ -36,6 +36,12 @@ func (rt *_router) Handler() http.Handler {
 	/* Section COMMENT */
 	rt.router.POST("/posts/:postid/comments/", rt.wrap(rt.commentPost, true))
 	rt.router.DELETE("/posts/:postid/comments/:commentid", rt.wrap(rt.uncommentPost, true))
+
+	/* ======== MYSTREAM API ========= */
+	rt.router.GET("/users/:uid/mystream", rt.wrap(rt.getMyStream, true))
+
+	/* ======== PROFILE API ========= */
+	rt.router.GET("/users/:uid/profile", rt.wrap(rt.getUserProfile, true))
 
 	/* ======== SPECIAL ROUTES ========= */
 	rt.router.GET("/liveness", rt.liveness)

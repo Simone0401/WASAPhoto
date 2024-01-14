@@ -63,6 +63,13 @@ type AppDatabase interface {
 	CheckCommentOwner(commentid uint64, userid uint64) (bool, error)
 	CheckCommentByCommentid(commentid uint64) (bool, error)
 	DeleteComment(commentid uint64) error
+	GetUserStream(uid uint64) ([]Post, error)
+	GetFollowers(uid uint64) ([]uint64, error)
+	GetPostLikes(postid uint64) ([]uint64, error)
+	GetPostComments(postid uint64) ([]Comment, error)
+	GetFollowed(uid uint64) ([]uint64, error)
+	GetProfileInfo(uid uint64) (Profile, error)
+	GetProfilePosts(uid uint64) ([]Post, error)
 
 	Ping() error
 }
@@ -86,6 +93,25 @@ type Comment struct {
 	Postid    uint64
 	Message   string `validate:"min=1, max=256"`
 	Datetime  string
+}
+
+// Post struct represents a post in every API call between this package and the outside world.
+// Note that the internal representation of post in the database might be different.
+type Post struct {
+	Postid   uint64
+	Uid      uint64
+	Likes    uint64    `validate:"min=0"`
+	Comments []Comment `validate:"dive"` // Validate Comments slice element, too
+	Datetime string    `validate:"datetimeformat"`
+}
+
+// Profile struct represents a user profile in every API call between this package and the outside world.
+// Note that the internal representation of Profile in the database might be different.
+type Profile struct {
+	User      User   `validate:"dive"`
+	NumPost   uint64 `validate:"min=0"`
+	Followers uint64 `validate:"min=0"`
+	Following uint64 `validate:"min=0"`
 }
 
 // New returns a new instance of AppDatabase based on the SQLite connection `db`.

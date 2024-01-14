@@ -8,7 +8,6 @@ import (
 	"io"
 	"net/http"
 	"strconv"
-	"time"
 )
 
 // commentPost allows a user to add a comment under a post.
@@ -136,11 +135,10 @@ func (rt *_router) commentPost(w http.ResponseWriter, r *http.Request, params ht
 	}
 
 	// Change DateTime format
-	parsedTime, err := time.Parse(time.RFC3339, commentApi.Datetime)
+	commentApi.Datetime, err = formatDatetime(commentApi.Datetime)
 	if err != nil {
 		context.Logger.Warning("Error parsing datetime in adding comment request!\nDetail: ", err.Error())
 	}
-	commentApi.Datetime = parsedTime.Format("2006-01-02 15:04:05")
 
 	w.Header().Set("Content-Type", "application/json")
 

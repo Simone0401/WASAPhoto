@@ -10,7 +10,7 @@ const (
 	MessageCommentRegex string = "^[a-zA-Z0-9.,!?;:'\"\\s]+$"
 )
 
-// User struct represent a user in every data exchange with the external world via REST API. JSON tags have been
+// User struct represents a user in every data exchange with the external world via REST API. JSON tags have been
 // added to the struct to conform to the OpenAPI specifications regarding JSON key names.
 // Note: there is a similar struct in the database package.
 type User struct {
@@ -18,7 +18,7 @@ type User struct {
 	Username string `json:"username" validate:"min=3, max=20"`
 }
 
-// Comment struct represent a comment in every data exchange with the external world via REST API. JSON tags have been
+// Comment struct represents a comment in every data exchange with the external world via REST API. JSON tags have been
 // added to the struct to conform to the OpenAPI specifications regarding JSON key names.
 // Note: there is a similar struct in the database package.
 type Comment struct {
@@ -27,6 +27,27 @@ type Comment struct {
 	Postid    uint64 `json:"postid"`
 	Message   string `json:"message" validate:"min=1, max=256"`
 	Datetime  string `json:"comment_datetime"`
+}
+
+// Post struct represents a post structure in every data exchange with the external world via REST API. JSON tags have been
+// added to the struct to conform to the OpenAPI specifications regarding JSON key names.
+// Note: there is a similar struct in the database package.
+type Post struct {
+	Postid   uint64    `json:"postid"`
+	Uid      uint64    `json:"uid"`
+	Likes    uint64    `json:"likes" validate:"min=0"`
+	Comments []Comment `json:"comments" validate:"dive"` // Validate Comments slice element, too
+	Datetime string    `json:"upload_datetime" validate:"datetimeformat"`
+}
+
+// ProfileInfo struct represents a Profile structure in every data exchange with the external world via REST API. JSON tags have been
+// added to the struct to conform to the OpenAPI specifications regarding JSON key names.
+// Note: there is a similar struct in the database package.
+type ProfileInfo struct {
+	User      User   `json:"user" validate:"dive"`
+	Numpost   uint64 `json:"numpost" validate:"min=0"`
+	Followers uint64 `json:"follower" validate:"min=0"`
+	Following uint64 `json:"following" validate:"min=0"`
 }
 
 // FromDatabase populates the struct with data from the database, overwriting all values.
@@ -70,6 +91,53 @@ func (c *Comment) ToDatabase() database.Comment {
 		Message:   c.Message,
 		Datetime:  c.Datetime,
 	}
+}
+
+// FromDatabase populates the struct with data from the database, overwriting all values.
+func (p *Post) FromDatabase(post database.Post) error {
+	p.Postid = post.Postid
+	p.Uid = post.Uid
+	p.Likes = post.Likes
+	for _, comment := range post.Comments {
+		p.Comments = append(p.Comments, Comment(comment))
+	}
+	p.Datetime = post.Datetime
+	return nil
+}
+
+// ToDatabase returns post in a database-compatible representation
+func (p *Post) ToDatabase() database.Post {
+	var postDatabase database.Post
+	postDatabase.Postid = p.Postid
+	postDatabase.Uid = p.Uid
+	postDatabase.Likes = p.Likes
+	for _, comment := range p.Comments {
+		postDatabase.Comments = append(postDatabase.Comments, database.Comment(comment))
+	}
+	postDatabase.Datetime = p.Datetime
+	return postDatabase
+}
+
+// FromDatabase populates the struct with data from the database, overwriting all values.
+func (p *ProfileInfo) FromDatabase(profile database.Profile) error {
+	err := p.User.FromDatabase(profile.User)
+	if err != nil {
+		return err
+	}
+	p.Numpost = profile.NumPost
+	p.Followers = profile.Followers
+	p.Following = profile.Following
+	return nil
+}
+
+// ToDatabase returns profile in a database-compatible representation
+func (p *ProfileInfo) ToDatabase() database.Profile {
+	var profileDatabase database.Profile
+	profileDatabase.User = p.User.ToDatabase()
+	profileDatabase.NumPost = p.Numpost
+	profileDatabase.Followers = p.Followers
+	profileDatabase.Following = p.Following
+	return profileDatabase
 }
 
 // IsValid checks the validity of the content. In particular, username should be in its range of validity.
