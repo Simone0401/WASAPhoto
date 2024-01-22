@@ -60,6 +60,12 @@ func (rt *_router) uploadPost(w http.ResponseWriter, r *http.Request, params htt
 		_ = Body.Close()
 	}(r.Body)
 
+	if err != nil {
+		context.Logger.Error("Unable to read binary image for uploading post\nDetail: ", err.Error())
+		http.Error(w, "Something wrong uploading the image", http.StatusInternalServerError)
+		return
+	}
+
 	// check if the Content-Type in the request is correct and if the binary format is correct
 	var imageType string
 	contentType := r.Header.Get("Content-Type")

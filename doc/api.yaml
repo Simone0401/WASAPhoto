@@ -634,6 +634,8 @@ paths:
               type: object
               properties:
                 comment:
+                  description: represents a comment under a photo pubblished
+                  type: object
                   properties:
                     uid:
                       $ref: '#/components/schemas/comment/properties/uid'
@@ -711,7 +713,7 @@ paths:
         Note: image id is the same of post id.
 
       responses:
-        200:
+        "200":
           description: image correctly downloaded.
           content:
             image/*:

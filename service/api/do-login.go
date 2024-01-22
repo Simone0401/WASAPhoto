@@ -34,8 +34,7 @@ func (rt *_router) doLogin(w http.ResponseWriter, r *http.Request, params httpro
 	// check if the user already exists
 	// if not exists we need creating that
 	// otherwise return user object
-	var userdb database.User
-	userdb = user.ToDatabase()
+	userdb := user.ToDatabase()
 	exists, err := rt.db.CheckExistsByUsername(userdb.Username)
 	if err != nil {
 		context.Logger.Error(err.Error())
@@ -96,7 +95,7 @@ func recoverUserByUsername(rt *_router, user User) (User, error) {
 	var userdb database.User
 
 	userdb = user.ToDatabase()
-	userdb, err := rt.db.GetUserByUsername(user.Username)
+	userdb, err := rt.db.GetUserByUsername(userdb.Username)
 
 	if err != nil {
 		return User{}, err

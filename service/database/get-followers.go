@@ -1,5 +1,10 @@
 package database
 
+import (
+	"database/sql"
+	"fmt"
+)
+
 // GetFollowers allows to get a []uint64 followers ids for a specified user.
 // Request will fail if uid doesn't exist
 func (db *appdbimpl) GetFollowers(uid uint64) ([]uint64, error) {
@@ -12,7 +17,12 @@ func (db *appdbimpl) GetFollowers(uid uint64) ([]uint64, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func(rows *sql.Rows) {
+		err := rows.Close()
+		if err != nil {
+			fmt.Println("Error closing rows in GetFollowers")
+		}
+	}(rows)
 
 	// Read each row returned
 	for rows.Next() {

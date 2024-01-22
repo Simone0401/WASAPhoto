@@ -37,8 +37,7 @@ func (rt *_router) commentPost(w http.ResponseWriter, r *http.Request, params ht
 		return
 	}
 
-	var commentApi Comment
-	commentApi = comment["comment"]
+	commentApi := comment["comment"]
 	uid := commentApi.Userid
 
 	// check if the Bearer Authorization Token is set

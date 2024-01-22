@@ -1,5 +1,10 @@
 package database
 
+import (
+	"database/sql"
+	"fmt"
+)
+
 // GetProfilePosts allows to get profile Posts stream passing his uid.
 // Request will fail if uid doesn't exist
 func (db *appdbimpl) GetProfilePosts(uid uint64) ([]Post, error) {
@@ -14,7 +19,12 @@ func (db *appdbimpl) GetProfilePosts(uid uint64) ([]Post, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func(rows *sql.Rows) {
+		err := rows.Close()
+		if err != nil {
+			fmt.Println("Error closing rows in GetProfilePosts!")
+		}
+	}(rows)
 
 	for rows.Next() {
 		var post Post

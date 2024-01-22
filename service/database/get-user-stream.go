@@ -1,6 +1,10 @@
 package database
 
-import "strings"
+import (
+	"database/sql"
+	"fmt"
+	"strings"
+)
 
 // GetUserStream allows to get a user Posts stream passing his uid.
 // Request will fail if uid doesn't exist
@@ -35,7 +39,12 @@ func (db *appdbimpl) GetUserStream(uid uint64) ([]Post, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func(rows *sql.Rows) {
+		err := rows.Close()
+		if err != nil {
+			fmt.Println("Error closing rows in GetUserStream!")
+		}
+	}(rows)
 
 	var posts []Post
 

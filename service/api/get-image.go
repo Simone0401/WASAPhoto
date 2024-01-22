@@ -73,6 +73,11 @@ func (rt *_router) getImage(w http.ResponseWriter, r *http.Request, params httpr
 	}(imageFile)
 
 	fileInfo, err := imageFile.Stat()
+	if err != nil {
+		context.Logger.Error("Something wrong retrieving image Stat")
+		http.Error(w, "Something wrong retrieving image", http.StatusInternalServerError)
+		return
+	}
 
 	// Set Content-Type Header to image/png or image/jpeg
 	if check := strings.HasSuffix(fileName, ".png"); check {
