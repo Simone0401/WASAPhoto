@@ -2,7 +2,6 @@ package database
 
 import (
 	"database/sql"
-	"fmt"
 )
 
 // GetFollowed allows to get a []uint64 followed ids for a specified user.
@@ -18,12 +17,8 @@ func (db *appdbimpl) GetFollowed(uid uint64) ([]uint64, error) {
 		return nil, err
 	}
 	defer func(rows *sql.Rows) {
-		err := rows.Close()
-		if err != nil {
-			fmt.Println("Error closing rows in GetFollowed!")
-		}
+		_ = rows.Close()
 	}(rows)
-
 	// Read each row returned
 	for rows.Next() {
 		var fuid uint64
@@ -31,6 +26,9 @@ func (db *appdbimpl) GetFollowed(uid uint64) ([]uint64, error) {
 			return fuids, err
 		}
 		fuids = append(fuids, fuid)
+	}
+	if rows.Err() != nil {
+		return fuids, rows.Err()
 	}
 
 	return fuids, err

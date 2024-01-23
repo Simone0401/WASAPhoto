@@ -2,7 +2,6 @@ package database
 
 import (
 	"database/sql"
-	"fmt"
 )
 
 // GetPostLikes allows to get a []uint64 follower ids that put like to a specified post.
@@ -19,10 +18,7 @@ func (db *appdbimpl) GetPostLikes(postid uint64) ([]uint64, error) {
 		return nil, err
 	}
 	defer func(rows *sql.Rows) {
-		err := rows.Close()
-		if err != nil {
-			fmt.Println("Error closing rows in GetPostLikes!")
-		}
+		_ = rows.Close()
 	}(rows)
 
 	for rows.Next() {
@@ -32,6 +28,10 @@ func (db *appdbimpl) GetPostLikes(postid uint64) ([]uint64, error) {
 			return uidlikes, err
 		}
 		uidlikes = append(uidlikes, uidlike)
+	}
+
+	if rows.Err() != nil {
+		return uidlikes, rows.Err()
 	}
 
 	return uidlikes, err

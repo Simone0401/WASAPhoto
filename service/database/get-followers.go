@@ -2,7 +2,6 @@ package database
 
 import (
 	"database/sql"
-	"fmt"
 )
 
 // GetFollowers allows to get a []uint64 followers ids for a specified user.
@@ -18,10 +17,7 @@ func (db *appdbimpl) GetFollowers(uid uint64) ([]uint64, error) {
 		return nil, err
 	}
 	defer func(rows *sql.Rows) {
-		err := rows.Close()
-		if err != nil {
-			fmt.Println("Error closing rows in GetFollowers")
-		}
+		_ = rows.Close()
 	}(rows)
 
 	// Read each row returned
@@ -31,6 +27,9 @@ func (db *appdbimpl) GetFollowers(uid uint64) ([]uint64, error) {
 			return fuids, err
 		}
 		fuids = append(fuids, fuid)
+	}
+	if rows.Err() != nil {
+		return fuids, rows.Err()
 	}
 
 	return fuids, err

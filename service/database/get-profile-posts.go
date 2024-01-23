@@ -2,7 +2,6 @@ package database
 
 import (
 	"database/sql"
-	"fmt"
 )
 
 // GetProfilePosts allows to get profile Posts stream passing his uid.
@@ -20,10 +19,7 @@ func (db *appdbimpl) GetProfilePosts(uid uint64) ([]Post, error) {
 		return nil, err
 	}
 	defer func(rows *sql.Rows) {
-		err := rows.Close()
-		if err != nil {
-			fmt.Println("Error closing rows in GetProfilePosts!")
-		}
+		_ = rows.Close()
 	}(rows)
 
 	for rows.Next() {
@@ -48,6 +44,10 @@ func (db *appdbimpl) GetProfilePosts(uid uint64) ([]Post, error) {
 
 		// Add post to the list
 		posts = append(posts, post)
+	}
+
+	if rows.Err() != nil {
+		return posts, rows.Err()
 	}
 
 	return posts, err

@@ -1,6 +1,9 @@
 package database
 
-import "errors"
+import (
+	"database/sql"
+	"errors"
+)
 
 // GetPostComments allows to get all the comments under a post.
 // Request will fail if postid doesn't exist
@@ -20,6 +23,9 @@ func (db *appdbimpl) GetPostComments(postid uint64) ([]Comment, error) {
 
 	var comments []Comment
 	rows, err := db.c.Query(commentQuery, postid)
+	defer func(rows *sql.Rows) {
+		_ = rows.Close()
+	}(rows)
 	if err != nil {
 		return nil, err
 	}
@@ -31,6 +37,10 @@ func (db *appdbimpl) GetPostComments(postid uint64) ([]Comment, error) {
 			return comments, err
 		}
 		comments = append(comments, comment)
+	}
+
+	if rows.Err() != nil {
+		return comments, rows.Err()
 	}
 
 	return comments, err

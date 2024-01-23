@@ -2,7 +2,6 @@ package database
 
 import (
 	"database/sql"
-	"fmt"
 	"strings"
 )
 
@@ -40,10 +39,7 @@ func (db *appdbimpl) GetUserStream(uid uint64) ([]Post, error) {
 		return nil, err
 	}
 	defer func(rows *sql.Rows) {
-		err := rows.Close()
-		if err != nil {
-			fmt.Println("Error closing rows in GetUserStream!")
-		}
+		_ = rows.Close()
 	}(rows)
 
 	var posts []Post
@@ -71,6 +67,10 @@ func (db *appdbimpl) GetUserStream(uid uint64) ([]Post, error) {
 
 		// Add post to the list
 		posts = append(posts, post)
+	}
+
+	if rows.Err() != nil {
+		return posts, rows.Err()
 	}
 
 	return posts, err
