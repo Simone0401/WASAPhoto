@@ -2,7 +2,31 @@
 import { RouterLink, RouterView } from 'vue-router'
 </script>
 <script>
-export default {}
+export default {
+  methods: {
+    logOut() {
+      sessionStorage.clear();
+      this.hideLogOut();
+      this.hideSearch();
+    },
+    hideLogOut() {
+      let uid = sessionStorage.getItem("userID");
+      if (uid === null) {
+        document.getElementById("log-out").style.display = "none";
+      }
+    },
+    hideSearch() {
+      let uid = sessionStorage.getItem("userID");
+      if (uid === null) {
+        document.getElementById("search").style.display = "none";
+      }
+    },
+  },
+  mounted() {
+    this.hideLogOut();
+    this.hideSearch();
+  }
+}
 </script>
 
 <template>
@@ -34,12 +58,18 @@ export default {}
 								Menu item 1
 							</RouterLink>
 						</li>
-						<li class="nav-item">
-							<RouterLink to="/link2" class="nav-link">
-								<svg class="feather"><use href="/feather-sprite-v4.29.0.svg#key"/></svg>
-								Menu item 2
+						<li class="nav-item" id="search">
+							<RouterLink to="/link2" class="nav-link search">
+								<svg class="feather"><use href="/feather-sprite-v4.29.0.svg#search"/></svg>
+								Search
 							</RouterLink>
 						</li>
+            <li class="nav-item" id="log-out">
+              <RouterLink to="/" class="nav-link log-out" @click="logOut">
+                <svg class="feather"><use href="/feather-sprite-v4.29.0.svg#log-out"/></svg>
+                  Log out
+              </RouterLink>
+            </li>
 					</ul>
 
 					<h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted text-uppercase">
@@ -47,7 +77,7 @@ export default {}
 					</h6>
 					<ul class="nav flex-column">
 						<li class="nav-item">
-							<RouterLink :to="'/some/' + 'variable_here' + '/path'" class="nav-link">
+							<RouterLink :to="'/'" class="nav-link">
 								<svg class="feather"><use href="/feather-sprite-v4.29.0.svg#file-text"/></svg>
 								Item 1
 							</RouterLink>
@@ -64,4 +94,10 @@ export default {}
 </template>
 
 <style>
+.log-out:hover {
+  color: #f8293a !important;
+}
+.search:hover {
+  color: #0d41ff !important;
+}
 </style>

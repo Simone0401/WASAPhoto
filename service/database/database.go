@@ -57,6 +57,7 @@ type AppDatabase interface {
 	RemoveCommentsFromPost(postid uint64) error
 	RemoveLikesFromPost(postid uint64) error
 	RemovePost(postid uint64, userid uint64) error
+	CheckLike(postid uint64, userid uint64) (bool, error)
 	LikePost(postid uint64, userid uint64) error
 	UnlikePost(postid uint64, userid uint64) error
 	AddComment(userid uint64, postid uint64, message string) (Comment, error)

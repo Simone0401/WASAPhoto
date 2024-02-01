@@ -8,18 +8,17 @@ import (
 	"strconv"
 )
 
-// likePost allows a user to put like to a post.
+// getLike allows to check if a user has put like to a post.
 // If the user in not authorized, the request will fail.
 // If the user id doesn't exist, the request will fail.
 // If the post id doesn't exist, the request will fail.
-// If the request is OK, it will return User{} object who has put the like.
-// Note: a user can put like to his own post
-func (rt *_router) likePost(w http.ResponseWriter, r *http.Request, params httprouter.Params, context reqcontext.RequestContext) {
+// If the request is OK, it will return Like resource.
+func (rt *_router) getLike(w http.ResponseWriter, r *http.Request, params httprouter.Params, context reqcontext.RequestContext) {
 	// The User ID in the path is a 64-bit unsigned integer. Let's parse it.
 	uid, err := strconv.ParseUint(params.ByName("uid"), 10, 64)
 
 	if err != nil {
-		context.Logger.Error("Error parsing uid in put like request")
+		context.Logger.Error("Error parsing uid in getting like request")
 		w.WriteHeader(http.StatusBadRequest)
 
 		response := map[string]string{
@@ -32,7 +31,7 @@ func (rt *_router) likePost(w http.ResponseWriter, r *http.Request, params httpr
 
 	// check if the Bearer Authorization Token is set
 	if !rt.isAuthorized(r.Header) {
-		context.Logger.Error("The bearer format token is not valid in put like request!")
+		context.Logger.Error("The bearer format token is not valid in getting like request!")
 		w.Header().Add("Content-Type", "application/json")
 		w.WriteHeader(http.StatusUnauthorized)
 
@@ -47,7 +46,7 @@ func (rt *_router) likePost(w http.ResponseWriter, r *http.Request, params httpr
 	// check if the current user is authorized
 	currentUid := context.Uid
 	if currentUid != uid {
-		context.Logger.Error("Error retrieving the current uid that makes put like request")
+		context.Logger.Error("Error retrieving the current uid that makes getting like request")
 		w.WriteHeader(http.StatusForbidden)
 		return
 	}
@@ -55,13 +54,13 @@ func (rt *_router) likePost(w http.ResponseWriter, r *http.Request, params httpr
 	// check if the user exists
 	check, err := rt.db.CheckExistsByUID(uid)
 	if err != nil {
-		context.Logger.Error("Error retrieving information on UID for putting like request!")
+		context.Logger.Error("Error retrieving information on UID for getting like request!")
 		http.Error(w, "Something wrong in the server", http.StatusInternalServerError)
 		return
 	}
 
 	if !check {
-		context.Logger.Error("Error in putting like request! User doesn't exist!")
+		context.Logger.Error("Error in getting like request! User doesn't exist!")
 		http.Error(w, "User seems not exist.", http.StatusNotFound)
 		return
 	}
@@ -84,46 +83,48 @@ func (rt *_router) likePost(w http.ResponseWriter, r *http.Request, params httpr
 	// check if the post exists
 	check, err = rt.db.CheckPostByPostid(postid)
 	if err != nil {
-		context.Logger.Error("Error retrieving information on postid for putting like!\nDetail: ", err.Error())
+		context.Logger.Error("Error retrieving information on postid for getting like!\nDetail: ", err.Error())
 		http.Error(w, "Something wrong in the server", http.StatusInternalServerError)
 		return
 	}
 
 	if !check {
-		context.Logger.Error("Error in putting like request! Post doesn't exist")
+		context.Logger.Error("Error in getting like request! Post doesn't exist")
 		http.Error(w, "Post seems not exist.", http.StatusNotFound)
 		return
 	}
 
-	// Put the like on table
-	err = rt.db.LikePost(postid, uid)
+	// Check like on table
+	check, err = rt.db.CheckLike(postid, uid)
 
 	if err != nil {
-		context.Logger.Error("Error adding like to table.\nDetail: ", err.Error())
-		http.Error(w, "Something wrong adding like to the post.", http.StatusInternalServerError)
+		context.Logger.Error("Error getting like from table.\nDetail: ", err.Error())
+		http.Error(w, "Something wrong getting likes from the post.", http.StatusInternalServerError)
 		return
 	}
 
-	// Like correctly added
-	// Now return User{} struct
-	userdb, err := rt.db.GetUserByID(uid)
+	if !check {
+		context.Logger.Info("Like doesn't found on post!")
+		w.Header().Add("Content-Type", "application/json")
+		w.WriteHeader(http.StatusNotFound)
 
-	if err != nil {
-		context.Logger.Error("Error retrieving user structure in like request.\nDetail: ", err.Error())
-		http.Error(w, "Something wrong adding like to the post.", http.StatusInternalServerError)
+		response := map[string]interface{}{
+			"errno": 1,
+			"error": "like doesn't found on post",
+		}
+
+		_ = json.NewEncoder(w).Encode(response)
 		return
 	}
 
-	var userapi User
-	err = userapi.FromDatabase(userdb)
-
-	if err != nil {
-		context.Logger.Error("Error parsing using structure in like request.\nDetail: ", err.Error())
-		http.Error(w, "Something wrong adding like to the post.", http.StatusInternalServerError)
-		return
+	// Like status correctly recovered
+	// Now return Like resource to the client
+	likeapi := map[string]uint64{
+		"user_id": uid,
+		"postid":  postid,
 	}
-
 	w.Header().Set("Content-Type", "application/json")
-	_ = json.NewEncoder(w).Encode(userapi)
+	w.WriteHeader(http.StatusOK)
+	_ = json.NewEncoder(w).Encode(likeapi)
 
 }

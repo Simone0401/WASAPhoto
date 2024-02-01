@@ -554,6 +554,58 @@ paths:
         description: the unique ID hooked to a user.
         schema: { $ref: '#/components/schemas/userID' }
 
+    get:
+      security:
+        - bearerAuth: []
+      tags:
+        - "post"
+      operationId: getLikePhoto
+      summary: getting user like status for a post
+      description: |
+        Getting user like status for a post.
+        If the post id doesn't exist, the request will fail.
+        If the user in not authorized, the request will fail.
+        If the user id doesn't exist, the request will fail.
+
+      responses:
+        "200":
+          description: like status correctly recovered.
+          content:
+            application/json:
+              schema:
+                description: server responds with the like resource, if it exists.
+                type: object
+                properties:
+                  user_id:
+                    $ref: '#/components/schemas/userID'
+                  postid:
+                    $ref: '#/components/schemas/postid'
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/UnauthorizedError" }
+        "404":
+          description: |
+            the searched like seems not exists
+          content:
+            application/json:
+              schema:
+                description: server returns a not found message and the integer errno (corresponds to 1).
+                type: object
+                properties:
+                  errorno:
+                    description: integer error number returned by server
+                    type: integer
+                    minimum: 0
+                    maximum: 10
+                    example: 1
+                  error:
+                    description: verbose message error description returned by server
+                    type: string
+                    minLength: 0
+                    maxLength: 256
+                    pattern: '^.*?$'
+                    example: like not found
+        "500": { $ref: "#/components/responses/InternalServerError" }
+
     put:
       security:
         - bearerAuth: []
@@ -573,7 +625,1981 @@ paths:
           content:
             application/json:
               schema:
-                description: server responds with the likeid created for the new like.
+                description: server responds with the like resource created for the new like.
+                type: object
+                properties:
+                  user_id:
+                    $ref: '#/components/schemas/userID'
+                  username:
+                    $ref: '#/components/schemas/username'
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/UnauthorizedError" }
+        "500": { $ref: "#/components/responses/InternalServerError" }
+
+    delete:
+      security:
+        - bearerAuth: []
+      tags:
+        - "post"
+      operationId: unlikePhoto
+      summary: unlike a post
+      description: |
+        User can remove like from a post.
+        If the post id doesn't exist, the request will fail.
+        If the user in not authorized, the request will fail.
+        If the user id doesn't exist, the request will fail.
+
+      responses:
+        "204":
+          description: like correctly removed.
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/UnauthorizedError" }
+        "500": { $ref: "#/components/responses/InternalServerError" }
+
+  /posts/{postid}/comments/:
+    parameters:
+      - name: postid
+        in: path
+        required: true
+        description: the unique ID hooked to a post.
+        schema: { $ref: '#/components/schemas/postid' }
+
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - "post"
+      operationId: commentPhoto
+      summary: comment a post
+      description: |
+        User can comment a post.
+        If the post id doesn't exist, the request will fail.
+        If the user in not authorized, the request will fail.
+        If the user id doesn't exist, the request will fail.
+      requestBody:
+        description: the comment that user wants to write.
+        required: true
+        content:
+          application/json:
+            schema:
+              description: post a comment under a post.
+              type: object
+              properties:
+                comment:
+                  description: represents a comment under a photo pubblished
+                  type: object
+                  properties:
+                    uid:
+                      $ref: '#/components/schemas/comment/properties/uid'
+                    message:
+                      $ref: '#/components/schemas/comment/properties/message'
+
+      responses:
+        "201":
+          description: comment correctly added.
+          content:
+            application/json:
+              schema:
+                description: server returns comment id associated to the post comment.
+                type: object
+                properties:
+                  comment:
+                    $ref: '#/components/schemas/comment'
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/UnauthorizedError" }
+        "500": { $ref: "#/components/responses/InternalServerError" }
+
+  /posts/{postid}/comments/{commentid}:
+    parameters:
+      - name: postid
+        in: path
+        required: true
+        description: the unique ID hooked to a post.
+        schema: { $ref: '#/components/schemas/postid' }
+      - name: commentid
+        in: path
+        required: true
+        description: the unique ID hooked to a comment.
+        schema: { $ref: '#/components/schemas/commentid' }
+
+    delete:
+      security:
+        - bearerAuth: []
+      tags:
+        - "post"
+      operationId: uncommentPhoto
+      summary: uncomment a post
+      description: |
+        User can delete a comment from post, if he is the comment author.
+        If the post id doesn't exist, the request will fail.
+        If the user id doesn't exist, the request will fail.
+        If the user in not authorized, the request will fail.
+
+      responses:
+        "204":
+          description: comment correctly removed.
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/UnauthorizedError" }
+        "500": { $ref: "#/components/responses/InternalServerError" }
+
+  /images/{imageid}:
+    parameters:
+      - name: imageid
+        in: path
+        required: true
+        description: |
+          the unique id hooked to an image of a post. It's the same of postid.
+        schema: { $ref: '#/components/schemas/postid' }
+
+    get:
+      security:
+        - bearerAuth: []
+      tags:
+        - "post"
+      operationId: getImage
+      summary: get an image
+      description: |
+        User can recover an image passing the image ID.
+        If the user id doesn't exist, the request will fail.
+        If the user is not authorized, the request will fail.
+        Note: image id is the same of post id.
+
+      responses:
+        "200":
+          description: image correctly downloaded.
+          content:
+            image/*:
+              schema:
+                $ref: "#/components/schemas/image"
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/UnauthorizedError" }
+        "404":
+          description: |
+            the searched image seems not exists
+          content:
+            application/json:
+              schema:
+                description: server returns a not found message
+                type: object
+                properties:
+                  error:
+                    description: verbose message error description returned by server
+                    type: string
+                    minLength: 0
+                    maxLength: 256
+                    pattern: '^.*?$'
+                    example: image not found
+        "500": { $ref: "#/components/responses/InternalServerError" }
+
+
+# 1) Define the security scheme type (HTTP bearer)
+components:
+  schemas:
+    username:
+      title: username
+      description: is the nickname choosed by a user
+      type: string
+      pattern: '^[A-Za-z0-9]{3,20}$'
+      example: Simone01
+      minLength: 3
+      maxLength: 20
+
+    userID:
+      title: the User ID
+      description: the userID as an integer. Each user has it own uid.
+      type: integer
+      minimum: 1
+      example: 100
+
+    commentid:
+      title: the comment ID
+      description: |
+        each comment submitted has it own id.
+      type: integer
+      minimum: 1
+      example: 100
+    user:
+      title: user
+      description: all the information about user
+      type: object
+      properties:
+        user_id:
+          $ref: '#/components/schemas/userID'
+        username:
+          $ref: '#/components/schemas/username'
+    postid:
+      title: post ID
+      description: the post ID as an integer
+      type: integer
+      minimum: 1
+      example: 13244
+    image:
+      title: post image
+      description: the binary image of a post.
+      type: string
+      format: binary
+      minLength: 0
+      maxLength: 160000000
+    comment:
+      title: comment under a post
+      description: represents a comment under a photo pubblished
+      type: object
+      properties:
+        id:
+          $ref: '#/components/schemas/commentid'
+        uid:
+          $ref: '#/components/schemas/userID'
+        postid:
+          $ref: '#/components/schemas/postid'
+        message:
+          title: message written
+          description: the effective message of the comment
+          type: string
+          minLength: 1
+          maxLength: 256
+          pattern: ^[a-zA-Z0-9.,!?;:'"\s]+$
+          example: a cr4zy comment!
+        comment_datetime:
+          title: datetime posted comment
+          description: |
+            represents the date and the time of a post comment according
+            to format YYYY-MM-DD HH:MM:SS
+          type: string
+          minLength: 19
+          maxLength: 19
+          format: date-time
+          example: 2017-07-21 17:32:28
+    post:
+      title: post content
+      description: |
+        a single post content, that includes the id of the image,
+        the numbers of like and all the comments.
+      type: object
+      properties:
+        postid:
+          $ref: '#/components/schemas/postid'
+        uid:
+          $ref: '#/components/schemas/userID'
+        likes:
+          title: number of likes
+          description: represents the like number of the photo
+          type: integer
+          minimum: 0
+          example: 20
+        comments:
+          title: list of comments
+          description: all the comments under a post in reverse chronological order
+          type: array
+          minItems: 0
+          maxItems: 1000
+          items:
+            $ref: '#/components/schemas/comment'
+        upload_datetime:
+          title: datetime post uploading
+          description: |
+            represents the date and the time of a post uploading according
+            to format YYYY-MM-DD HH:MM:SS
+          type: string
+          minLength: 19
+          maxLength: 19
+          format: date-time
+          example: 2017-07-21 17:32:28
+    profileinfo:
+      description: consists in all the personal information of the user.
+      type: object
+      properties:
+        user:
+          $ref: '#/components/schemas/user'
+        numpost:
+          description: is the amount of all the post uploaded by the user.
+          title: the number of uploaded post
+          type: integer
+          minimum: 0
+          example: 10
+        follower:
+          description: is the number of follower of the user.
+          title: the number of follower
+          type: integer
+          minimum: 0
+          example: 10
+        following:
+          description: is the number of account followed by the user.
+          title: the number of followed
+          type: integer
+          minimum: 0
+          example: 10
+
+  securitySchemes:
+    bearerAuth:            # arbitrary name for the security scheme
+      type: http
+      scheme: bearer
+      bearerFormat: JWT    # optional, arbitrary value for documentation purposes
+
+  responses:
+    UnauthorizedError:
+      description: Access token is missing or invalid
+      content:
+        application/json:
+          schema:
+            type: object
+            description: |
+              server returns a descriptive error message
+            properties:
+              error:
+                description: verbose message error description returned by server
+                type: string
+                minLength: 0
+                maxLength: 256
+                pattern: '^.*?$'
+                example: log to do action
+    BadRequest:
+      description: |
+        The request was not compliant with the documentation (eg. missing fields, etc)
+      content:
+        application/json:
+          schema:
+            type: object
+            description: |
+              server returns a descriptive error message
+            properties:
+              error:
+                description: verbose message error description returned by server
+                type: string
+                minLength: 0
+                maxLength: 256
+                pattern: '^.*?$'
+                example: not correct format
+    InternalServerError:
+      description: |
+        The server encountered an internal error. Further info in server logs
+      content:
+        application/json:
+          schema:
+            type: object
+            description: |
+              server returns a descriptive error message
+            properties:
+              error:
+                description: verbose message error description returned by server
+                type: string
+                minLength: 0
+                maxLength: 256
+                pattern: '^.*?$'
+                example: something wrongopenapi: 3.0.0
+info:
+  title: WaSAPhoto API
+  version: 1.0.0
+  description: |
+    **WaSAPhoto - Share Special Moments with Friends**
+
+    **Project Overview:** \
+    WaSAPhoto is a social media application designed to keep you connected with your friends and loved ones by enabling you to share special moments through photos. With WaSAPhoto, you can seamlessly upload photos directly from your PC and make them visible to everyone who follows you. 
+
+    **Functional Design Specifications:**
+
+    1. **Photo Stream:**
+       - Each user is presented with a dynamic stream of photos in reverse chronological order.
+       - The stream provides essential information, including the date and time of each photo's upload, and the number of likes and comments it has received.
+       - The photo stream is curated with images from users you are following.
+
+    2. **Interactions:**
+       - Users can like photos uploaded by other users and remove their likes at any time.
+       - Commenting on photos is encouraged, and users can add comments to any image, even if they uploaded it themselves. Only the authors have the authority to remove their comments.
+
+    3. **User Control:**
+       - Users have the ability to ban other users. When a user is banned, they won't have access to any information about the user who banned them. However, the user who initiated the ban can choose to remove it at any time.
+
+    4. **User Profiles:**
+       - Each user has a personal profile page, displaying their photos in reverse chronological order.
+       - Users can see how many photos they've uploaded and the number of followers and followed users.
+    
+    5. **User Actions:**
+       - Users have the freedom to change their usernames, upload photos, remove photos, and follow/unfollow other users.
+       - The removal of an image will also result in the removal of associated likes and comments.
+
+    6. **User Search:**
+       - A search functionality allows users to discover other user profiles by their usernames.
+
+    7. **Simplified Login:**
+       - Users can quickly log in by specifying their username, simplifying the authentication process.
+
+    **Technical Details:**
+
+    The WaSAPhoto app backend REST API is responsible for handling all the interactions and data management to ensure a seamless experience for users. Whether you're sharing your cherished moments or engaging with others' content, the API's functionality is designed to provide a smooth, intuitive, and secure platform for all your photo-sharing needs.
+
+    Join WaSAPhoto and start sharing your special moments today!
+
+tags:
+  - name: "login"
+    description: "Everything about your session"
+  - name: "user"
+    description: "Everything about user"
+  - name: "post"
+    description: "Everything about your posts"
+
+servers:
+  - url: http://localhost:3000
+
+paths:
+  /session:
+    post:
+      tags: ["login"]
+      summary: Logs in the user
+      description: |-
+        If the user does not exist, it will be created,
+        and an identifier is returned.
+        If the user exists, the user identifier is returned.
+      operationId: doLogin
+      requestBody:
+        description: User username
+        content:
+          application/json:
+            schema:
+              description: |
+                is the username that a user wants to use for login
+              type: object
+              properties:
+                username:
+                  description: name string. It can contain some special characters
+                  type: string
+                  example: Maria
+                  pattern: '^.*?$'
+                  minLength: 3
+                  maxLength: 20
+        required: true
+      responses:
+        "200":
+          description: |
+            log-in action successful
+          content:
+            application/json:
+              schema:
+                description: server responds with the integer associated to username
+                type: object
+                properties:
+                  user_id:
+                    $ref: '#/components/schemas/userID'
+                  username:
+                    $ref: '#/components/schemas/username'
+        "201":
+          description: |
+            User correctly created and log-in action successful
+          content:
+            application/json:
+              schema:
+                description: server responds with the user id created for the new username.
+                type: object
+                properties:
+                  user_id:
+                    $ref: '#/components/schemas/userID'
+                  username:
+                    $ref: '#/components/schemas/username'
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: '#/components/responses/UnauthorizedError' }
+        "500": { $ref: "#/components/responses/InternalServerError" }
+
+  /users/{uid}/username:
+
+    parameters:
+      - name: uid
+        in: path
+        required: true
+        description: the unique ID hooked to a user
+        schema: { $ref: '#/components/schemas/userID' }
+
+    get:
+      security:
+        - bearerAuth: []
+      tags:
+        - "user"
+      operationId: getMyUserName
+      summary: get user username
+      description: |
+        allows getting user's username passing the uid
+
+      responses:
+        '200':
+          description: |
+            username correctly recovered from the server
+          content:
+            application/json:
+              schema:
+                description: server returns to username associated to a uid.
+                type: object
+                properties:
+                  username:
+                    $ref: '#/components/schemas/username'
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: '#/components/responses/UnauthorizedError' }
+        "404":
+          description: |
+            the searched username seems not exists
+          content:
+            application/json:
+              schema:
+                description: server returns a not found message
+                type: object
+                properties:
+                  error:
+                    description: verbose message error description returned by server
+                    type: string
+                    minLength: 0
+                    maxLength: 256
+                    pattern: '^.*?$'
+                    example: username not found
+        "500": { $ref: "#/components/responses/InternalServerError" }
+
+    put:
+      security:
+        - bearerAuth: []
+      tags:
+        - "user"
+      operationId: setMyUserName
+      summary: set the username
+      description: |
+        Set the new username to user indicated by userID.
+        If the username is already taken, the request will fail.
+        If the user in not authorized, the request will fail.
+        If the username is not well formatted, the request will fail.
+      requestBody:
+        description: the new username to set to.
+        required: true
+        content:
+          application/json:
+            schema:
+              description: represents the new username that user wants to set.
+              type: object
+              properties:
+                username:
+                  $ref: '#/components/schemas/username'
+
+      responses:
+        "200":
+          description: new username correctly updated.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/user' }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: '#/components/responses/UnauthorizedError' }
+        "500": { $ref: "#/components/responses/InternalServerError" }
+
+  /users/{uid}/posts/:
+    parameters:
+      - name: uid
+        in: path
+        required: true
+        description: the unique ID hooked to a user
+        schema: { $ref: '#/components/schemas/userID' }
+
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - "post"
+      operationId: uploadPhoto
+      summary: create a new post
+      description: |
+        Upload a new post adding a photo to the collection of posts.
+        If the user in not authorized, the request will fail.
+        If the MIME type is not PNG or JPEG the request will fail.
+      requestBody:
+        description: the image to upload as post.
+        required: true
+        content:
+          image/*:
+            schema:
+              $ref: "#/components/schemas/image"
+      responses:
+        "201":
+          description: new post correctly created.
+          content:
+            application/json:
+              schema:
+                description: server returns the post id associated to the image just uploaded.
+                type: object
+                properties:
+                  postid:
+                    $ref: '#/components/schemas/postid'
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/UnauthorizedError" }
+        "500": { $ref: "#/components/responses/InternalServerError" }
+
+  /users/{uid}/posts/{postid}:
+    parameters:
+      - name: uid
+        in: path
+        required: true
+        description: the unique ID hooked to a user.
+        schema: { $ref: '#/components/schemas/userID'}
+      - name: postid
+        in: path
+        required: true
+        description: the unique ID hooked to a post.
+        schema: { $ref: '#/components/schemas/postid' }
+
+    delete:
+      security:
+        - bearerAuth: []
+      tags:
+        - "post"
+      operationId: deletePhoto
+      summary: delete a post
+      description: |
+        User can delete a post, if he is the post author.
+        If the post id doesn't exist, the request will fail.
+        If the user in not authorized, the request will fail.
+        If the user id doesn't exist, the request will fail.
+
+        The request will remove all the comments, too.
+
+      responses:
+        "204":
+          description: post correctly removed.
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/UnauthorizedError" }
+        "500": { $ref: "#/components/responses/InternalServerError" }
+
+  /users/{uid}/following/{fuid}:
+    parameters:
+      - name: uid
+        in: path
+        required: true
+        description: the unique ID hooked to a user.
+        schema: { $ref: '#/components/schemas/userID' }
+      - name: fuid
+        in: path
+        required: true
+        description: the unique ID hooked to a user to follow.
+        schema: { $ref: '#/components/schemas/userID'}
+
+    put:
+      security:
+        - bearerAuth: []
+      tags:
+        - "user"
+      operationId: followUser
+      summary: follow a user
+      description: |
+        the specified uid user want to follow another user.
+        If the followed user is already followed, nothing change.
+        If the user id doesn't exist, the request will fail.
+        If the followed user id doesn't exist, the request will fail.
+        If the user in not authorized, the request will fail.
+        User cannot follow himself.
+
+      responses:
+        "201":
+          description: user correctly followed.
+          content:
+            application/json:
+              schema:
+                description: server responds with the user object created for the new follow.
+                type: object
+                properties:
+                  user_id:
+                    $ref: '#/components/schemas/userID'
+                  username:
+                    $ref: '#/components/schemas/username'
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/UnauthorizedError" }
+        "500": { $ref: "#/components/responses/InternalServerError" }
+
+    delete:
+      security:
+        - bearerAuth: []
+      tags:
+        - "user"
+      operationId: unfollowUser
+      summary: unfollow a user
+      description: |
+        the specified uid user want to unfollow another user.
+        If the followed user isn't already followed, nothing change.
+        If the user id doesn't exists, the request will fail.
+        If the followed user id doesn't exist, the request will fail.
+        If the user in not authorized, the request will fail.
+        User cannot unfollow himself.
+
+      responses:
+        "204":
+          description: user correctly unfollowed.
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/UnauthorizedError" }
+        "500": { $ref: "#/components/responses/InternalServerError" }
+
+  /users/{uid}/muted/{muteduid}:
+    parameters:
+      - name: uid
+        in: path
+        required: true
+        description: the unique ID hooked to a user.
+        schema: { $ref: '#/components/schemas/userID' }
+      - name: muteduid
+        in: path
+        required: true
+        description: the unique ID hooked to a user to mute.
+        schema: { $ref: '#/components/schemas/userID' }
+
+    put:
+      security:
+        - bearerAuth: []
+      tags:
+        - "user"
+      operationId: banUser
+      summary: ban a user
+      description: |
+        the specified uid user want to follow another user.
+        If the banned user is already banned, nothing change.
+        If the user id doesn't exist, the request will fail.
+        If the banned user id doesn't exist, the request will fail.
+        If the user in not authorized, the request will fail.
+        User cannot ban himself.
+
+      responses:
+        "201":
+          description: user correctly banned.
+          content:
+            application/json:
+              schema:
+                description: server returns the user object associated to the user just muted.
+                type: object
+                properties:
+                  muted_user_info:
+                    $ref: '#/components/schemas/user'
+
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/UnauthorizedError" }
+        "404":
+          description: |
+            the searched user to mute seems not exists
+          content:
+            application/json:
+              schema:
+                description: server returns a not found message
+                type: object
+                properties:
+                  error:
+                    description: verbose message error description returned by server
+                    type: string
+                    minLength: 0
+                    maxLength: 256
+                    pattern: '^.*?$'
+                    example: muteduid not found
+        "500": { $ref: "#/components/responses/InternalServerError" }
+
+    delete:
+      security:
+        - bearerAuth: []
+      tags:
+        - "user"
+      operationId: unbanUser
+      summary: unban a user
+      description: |
+        the specified uid user want to unban another user.
+        If the banned user isn't already banned, nothing change.
+        If the user id doesn't exists, the request will fail.
+        If the banned user id doesn't exist, the request will fail.
+        If the user in not authorized, the request will fail.
+        User cannot unban himself.
+
+      responses:
+        "204":
+          description: user correctly unfollowed.
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/UnauthorizedError" }
+        "500": { $ref: "#/components/responses/InternalServerError" }
+
+  /users/{uid}/profile:
+    parameters:
+      - name: uid
+        in: path
+        required: true
+        description: the unique ID hooked to a user.
+        schema: { $ref: '#/components/schemas/userID' }
+
+    get:
+      security:
+        - bearerAuth: []
+      tags:
+        - "user"
+      operationId: getUserProfile
+      summary: get user profile
+      description: |
+        allows getting user's profile information passing the uid.
+        The return values will be all the user information and his upload post stream in reverse chronological order
+      responses:
+        '200':
+          description: |
+            User information correctly recovered from the server
+          content:
+            application/json:
+              schema:
+                description: |
+                  server returns the entire profile of a user, 
+                  including all his personal information and
+                  all the post uploaded.
+                type: object
+                properties:
+                  profile_info:
+                    $ref: '#/components/schemas/profileinfo'
+                  uploaded_posts:
+                    description: contains all the post as array of post object.
+                    type: array
+                    minItems: 0
+                    maxItems: 1000
+                    items:
+                      $ref: '#/components/schemas/post'
+
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: '#/components/responses/UnauthorizedError' }
+        "404":
+          description: |
+            the searched uid seems not exists
+          content:
+            application/json:
+              schema:
+                description: server returns a not found message
+                type: object
+                properties:
+                  error:
+                    description: verbose message error description returned by server
+                    type: string
+                    minLength: 0
+                    maxLength: 256
+                    pattern: '^.*?$'
+                    example: uid not found
+        "500": { $ref: "#/components/responses/InternalServerError" }
+
+  /users/{uid}/mystream:
+    parameters:
+      - name: uid
+        in: path
+        required: true
+        description: the unique ID hooked to a user.
+        schema: { $ref: '#/components/schemas/userID' }
+
+    get:
+      security:
+        - bearerAuth: []
+      tags:
+        - "user"
+        - "post"
+      operationId: getMyStream
+      summary: get user stream photos.
+      description: |
+        Allows getting user stream photos passing the uid.
+        The stream consists in an array of post.
+        For getting a binary image it's necessary using the 'Get Image API'
+      responses:
+        '200':
+          description: |
+            User stream photo correctly recovered from the server
+          content:
+            application/json:
+              schema:
+                description: |
+                  server returns an array of post object
+                type: object
+                properties:
+                  posts:
+                    description: each object is a post objects.
+                    type: array
+                    minItems: 0
+                    maxItems: 1000
+                    items:
+                      $ref: '#/components/schemas/post'
+
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: '#/components/responses/UnauthorizedError' }
+        "404":
+          description: |
+            the searched uid seems not exists
+          content:
+            application/json:
+              schema:
+                description: server returns a not found message
+                type: object
+                properties:
+                  error:
+                    description: verbose message error description returned by server
+                    type: string
+                    minLength: 0
+                    maxLength: 256
+                    pattern: '^.*?$'
+                    example: uid not found
+        "500": { $ref: "#/components/responses/InternalServerError" }
+
+  /posts/{postid}/likes/{uid}:
+    parameters:
+      - name: postid
+        in: path
+        required: true
+        description: the unique ID hooked to a post.
+        schema: { $ref: '#/components/schemas/postid' }
+      - name: uid
+        in: path
+        required: true
+        description: the unique ID hooked to a user.
+        schema: { $ref: '#/components/schemas/userID' }
+
+    get:
+      security:
+        - bearerAuth: []
+      tags:
+        - "post"
+      operationId: getLikePhoto
+      summary: getting user like status for a post
+      description: |
+        Getting user like status for a post.
+        If the post id doesn't exist, the request will fail.
+        If the user in not authorized, the request will fail.
+        If the user id doesn't exist, the request will fail.
+
+      responses:
+        "200":
+          description: like status correctly recovered.
+          content:
+            application/json:
+              schema:
+                description: server responds with the like resource, if it exists.
+                type: object
+                properties:
+                  user_id:
+                    $ref: '#/components/schemas/userID'
+                  postid:
+                    $ref: '#/components/schemas/postid'
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/UnauthorizedError" }
+        "404":
+          description: |
+            the searched like seems not exists
+          content:
+            application/json:
+              schema:
+                description: server returns a not found message and the integer errno (corresponds to 1).
+                type: object
+                properties:
+                  errorno:
+                    description: integer error number returned by server
+                    type: integer
+                    minimum: 0
+                    maximum: 10
+                    example: 1
+                  error:
+                    description: verbose message error description returned by server
+                    type: string
+                    minLength: 0
+                    maxLength: 256
+                    pattern: '^.*?$'
+                    example: like not found
+        "500": { $ref: "#/components/responses/InternalServerError" }
+
+    put:
+      security:
+        - bearerAuth: []
+      tags:
+        - "post"
+      operationId: likePhoto
+      summary: like a post
+      description: |
+        User can put a like to a post.
+        If the post id doesn't exist, the request will fail.
+        If the user in not authorized, the request will fail.
+        If the user id doesn't exist, the request will fail.
+
+      responses:
+        "201":
+          description: like correctly put.
+          content:
+            application/json:
+              schema:
+                description: server responds with the like resource created for the new like.
+                type: object
+                properties:
+                  user_id:
+                    $ref: '#/components/schemas/userID'
+                  username:
+                    $ref: '#/components/schemas/username'
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/UnauthorizedError" }
+        "500": { $ref: "#/components/responses/InternalServerError" }
+
+    delete:
+      security:
+        - bearerAuth: []
+      tags:
+        - "post"
+      operationId: unlikePhoto
+      summary: unlike a post
+      description: |
+        User can remove like from a post.
+        If the post id doesn't exist, the request will fail.
+        If the user in not authorized, the request will fail.
+        If the user id doesn't exist, the request will fail.
+
+      responses:
+        "204":
+          description: like correctly removed.
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/UnauthorizedError" }
+        "500": { $ref: "#/components/responses/InternalServerError" }
+
+  /posts/{postid}/comments/:
+    parameters:
+      - name: postid
+        in: path
+        required: true
+        description: the unique ID hooked to a post.
+        schema: { $ref: '#/components/schemas/postid' }
+
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - "post"
+      operationId: commentPhoto
+      summary: comment a post
+      description: |
+        User can comment a post.
+        If the post id doesn't exist, the request will fail.
+        If the user in not authorized, the request will fail.
+        If the user id doesn't exist, the request will fail.
+      requestBody:
+        description: the comment that user wants to write.
+        required: true
+        content:
+          application/json:
+            schema:
+              description: post a comment under a post.
+              type: object
+              properties:
+                comment:
+                  description: represents a comment under a photo pubblished
+                  type: object
+                  properties:
+                    uid:
+                      $ref: '#/components/schemas/comment/properties/uid'
+                    message:
+                      $ref: '#/components/schemas/comment/properties/message'
+
+      responses:
+        "201":
+          description: comment correctly added.
+          content:
+            application/json:
+              schema:
+                description: server returns comment id associated to the post comment.
+                type: object
+                properties:
+                  comment:
+                    $ref: '#/components/schemas/comment'
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/UnauthorizedError" }
+        "500": { $ref: "#/components/responses/InternalServerError" }
+
+  /posts/{postid}/comments/{commentid}:
+    parameters:
+      - name: postid
+        in: path
+        required: true
+        description: the unique ID hooked to a post.
+        schema: { $ref: '#/components/schemas/postid' }
+      - name: commentid
+        in: path
+        required: true
+        description: the unique ID hooked to a comment.
+        schema: { $ref: '#/components/schemas/commentid' }
+
+    delete:
+      security:
+        - bearerAuth: []
+      tags:
+        - "post"
+      operationId: uncommentPhoto
+      summary: uncomment a post
+      description: |
+        User can delete a comment from post, if he is the comment author.
+        If the post id doesn't exist, the request will fail.
+        If the user id doesn't exist, the request will fail.
+        If the user in not authorized, the request will fail.
+
+      responses:
+        "204":
+          description: comment correctly removed.
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/UnauthorizedError" }
+        "500": { $ref: "#/components/responses/InternalServerError" }
+
+  /images/{imageid}:
+    parameters:
+      - name: imageid
+        in: path
+        required: true
+        description: |
+          the unique id hooked to an image of a post. It's the same of postid.
+        schema: { $ref: '#/components/schemas/postid' }
+
+    get:
+      security:
+        - bearerAuth: []
+      tags:
+        - "post"
+      operationId: getImage
+      summary: get an image
+      description: |
+        User can recover an image passing the image ID.
+        If the user id doesn't exist, the request will fail.
+        If the user is not authorized, the request will fail.
+        Note: image id is the same of post id.
+
+      responses:
+        "200":
+          description: image correctly downloaded.
+          content:
+            image/*:
+              schema:
+                $ref: "#/components/schemas/image"
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/UnauthorizedError" }
+        "404":
+          description: |
+            the searched image seems not exists
+          content:
+            application/json:
+              schema:
+                description: server returns a not found message
+                type: object
+                properties:
+                  error:
+                    description: verbose message error description returned by server
+                    type: string
+                    minLength: 0
+                    maxLength: 256
+                    pattern: '^.*?$'
+                    example: image not found
+        "500": { $ref: "#/components/responses/InternalServerError" }
+
+
+# 1) Define the security scheme type (HTTP bearer)
+components:
+  schemas:
+    username:
+      title: username
+      description: is the nickname choosed by a user
+      type: string
+      pattern: '^[A-Za-z0-9]{3,20}$'
+      example: Simone01
+      minLength: 3
+      maxLength: 20
+
+    userID:
+      title: the User ID
+      description: the userID as an integer. Each user has it own uid.
+      type: integer
+      minimum: 1
+      example: 100
+
+    commentid:
+      title: the comment ID
+      description: |
+        each comment submitted has it own id.
+      type: integer
+      minimum: 1
+      example: 100
+    user:
+      title: user
+      description: all the information about user
+      type: object
+      properties:
+        user_id:
+          $ref: '#/components/schemas/userID'
+        username:
+          $ref: '#/components/schemas/username'
+    postid:
+      title: post ID
+      description: the post ID as an integer
+      type: integer
+      minimum: 1
+      example: 13244
+    image:
+      title: post image
+      description: the binary image of a post.
+      type: string
+      format: binary
+      minLength: 0
+      maxLength: 160000000
+    comment:
+      title: comment under a post
+      description: represents a comment under a photo pubblished
+      type: object
+      properties:
+        id:
+          $ref: '#/components/schemas/commentid'
+        uid:
+          $ref: '#/components/schemas/userID'
+        postid:
+          $ref: '#/components/schemas/postid'
+        message:
+          title: message written
+          description: the effective message of the comment
+          type: string
+          minLength: 1
+          maxLength: 256
+          pattern: ^[a-zA-Z0-9.,!?;:'"\s]+$
+          example: a cr4zy comment!
+        comment_datetime:
+          title: datetime posted comment
+          description: |
+            represents the date and the time of a post comment according
+            to format YYYY-MM-DD HH:MM:SS
+          type: string
+          minLength: 19
+          maxLength: 19
+          format: date-time
+          example: 2017-07-21 17:32:28
+    post:
+      title: post content
+      description: |
+        a single post content, that includes the id of the image,
+        the numbers of like and all the comments.
+      type: object
+      properties:
+        postid:
+          $ref: '#/components/schemas/postid'
+        uid:
+          $ref: '#/components/schemas/userID'
+        likes:
+          title: number of likes
+          description: represents the like number of the photo
+          type: integer
+          minimum: 0
+          example: 20
+        comments:
+          title: list of comments
+          description: all the comments under a post in reverse chronological order
+          type: array
+          minItems: 0
+          maxItems: 1000
+          items:
+            $ref: '#/components/schemas/comment'
+        upload_datetime:
+          title: datetime post uploading
+          description: |
+            represents the date and the time of a post uploading according
+            to format YYYY-MM-DD HH:MM:SS
+          type: string
+          minLength: 19
+          maxLength: 19
+          format: date-time
+          example: 2017-07-21 17:32:28
+    profileinfo:
+      description: consists in all the personal information of the user.
+      type: object
+      properties:
+        user:
+          $ref: '#/components/schemas/user'
+        numpost:
+          description: is the amount of all the post uploaded by the user.
+          title: the number of uploaded post
+          type: integer
+          minimum: 0
+          example: 10
+        follower:
+          description: is the number of follower of the user.
+          title: the number of follower
+          type: integer
+          minimum: 0
+          example: 10
+        following:
+          description: is the number of account followed by the user.
+          title: the number of followed
+          type: integer
+          minimum: 0
+          example: 10
+
+  securitySchemes:
+    bearerAuth:            # arbitrary name for the security scheme
+      type: http
+      scheme: bearer
+      bearerFormat: JWT    # optional, arbitrary value for documentation purposes
+
+  responses:
+    UnauthorizedError:
+      description: Access token is missing or invalid
+      content:
+        application/json:
+          schema:
+            type: object
+            description: |
+              server returns a descriptive error message
+            properties:
+              error:
+                description: verbose message error description returned by server
+                type: string
+                minLength: 0
+                maxLength: 256
+                pattern: '^.*?$'
+                example: log to do action
+    BadRequest:
+      description: |
+        The request was not compliant with the documentation (eg. missing fields, etc)
+      content:
+        application/json:
+          schema:
+            type: object
+            description: |
+              server returns a descriptive error message
+            properties:
+              error:
+                description: verbose message error description returned by server
+                type: string
+                minLength: 0
+                maxLength: 256
+                pattern: '^.*?$'
+                example: not correct format
+    InternalServerError:
+      description: |
+        The server encountered an internal error. Further info in server logs
+      content:
+        application/json:
+          schema:
+            type: object
+            description: |
+              server returns a descriptive error message
+            properties:
+              error:
+                description: verbose message error description returned by server
+                type: string
+                minLength: 0
+                maxLength: 256
+                pattern: '^.*?$'
+                example: something wrongopenapi: 3.0.0
+info:
+  title: WaSAPhoto API
+  version: 1.0.0
+  description: |
+    **WaSAPhoto - Share Special Moments with Friends**
+
+    **Project Overview:** \
+    WaSAPhoto is a social media application designed to keep you connected with your friends and loved ones by enabling you to share special moments through photos. With WaSAPhoto, you can seamlessly upload photos directly from your PC and make them visible to everyone who follows you. 
+
+    **Functional Design Specifications:**
+
+    1. **Photo Stream:**
+       - Each user is presented with a dynamic stream of photos in reverse chronological order.
+       - The stream provides essential information, including the date and time of each photo's upload, and the number of likes and comments it has received.
+       - The photo stream is curated with images from users you are following.
+
+    2. **Interactions:**
+       - Users can like photos uploaded by other users and remove their likes at any time.
+       - Commenting on photos is encouraged, and users can add comments to any image, even if they uploaded it themselves. Only the authors have the authority to remove their comments.
+
+    3. **User Control:**
+       - Users have the ability to ban other users. When a user is banned, they won't have access to any information about the user who banned them. However, the user who initiated the ban can choose to remove it at any time.
+
+    4. **User Profiles:**
+       - Each user has a personal profile page, displaying their photos in reverse chronological order.
+       - Users can see how many photos they've uploaded and the number of followers and followed users.
+    
+    5. **User Actions:**
+       - Users have the freedom to change their usernames, upload photos, remove photos, and follow/unfollow other users.
+       - The removal of an image will also result in the removal of associated likes and comments.
+
+    6. **User Search:**
+       - A search functionality allows users to discover other user profiles by their usernames.
+
+    7. **Simplified Login:**
+       - Users can quickly log in by specifying their username, simplifying the authentication process.
+
+    **Technical Details:**
+
+    The WaSAPhoto app backend REST API is responsible for handling all the interactions and data management to ensure a seamless experience for users. Whether you're sharing your cherished moments or engaging with others' content, the API's functionality is designed to provide a smooth, intuitive, and secure platform for all your photo-sharing needs.
+
+    Join WaSAPhoto and start sharing your special moments today!
+
+tags:
+  - name: "login"
+    description: "Everything about your session"
+  - name: "user"
+    description: "Everything about user"
+  - name: "post"
+    description: "Everything about your posts"
+
+servers:
+  - url: http://localhost:3000
+
+paths:
+  /session:
+    post:
+      tags: ["login"]
+      summary: Logs in the user
+      description: |-
+        If the user does not exist, it will be created,
+        and an identifier is returned.
+        If the user exists, the user identifier is returned.
+      operationId: doLogin
+      requestBody:
+        description: User username
+        content:
+          application/json:
+            schema:
+              description: |
+                is the username that a user wants to use for login
+              type: object
+              properties:
+                username:
+                  description: name string. It can contain some special characters
+                  type: string
+                  example: Maria
+                  pattern: '^.*?$'
+                  minLength: 3
+                  maxLength: 20
+        required: true
+      responses:
+        "200":
+          description: |
+            log-in action successful
+          content:
+            application/json:
+              schema:
+                description: server responds with the integer associated to username
+                type: object
+                properties:
+                  user_id:
+                    $ref: '#/components/schemas/userID'
+                  username:
+                    $ref: '#/components/schemas/username'
+        "201":
+          description: |
+            User correctly created and log-in action successful
+          content:
+            application/json:
+              schema:
+                description: server responds with the user id created for the new username.
+                type: object
+                properties:
+                  user_id:
+                    $ref: '#/components/schemas/userID'
+                  username:
+                    $ref: '#/components/schemas/username'
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: '#/components/responses/UnauthorizedError' }
+        "500": { $ref: "#/components/responses/InternalServerError" }
+
+  /users/{uid}/username:
+
+    parameters:
+      - name: uid
+        in: path
+        required: true
+        description: the unique ID hooked to a user
+        schema: { $ref: '#/components/schemas/userID' }
+
+    get:
+      security:
+        - bearerAuth: []
+      tags:
+        - "user"
+      operationId: getMyUserName
+      summary: get user username
+      description: |
+        allows getting user's username passing the uid
+
+      responses:
+        '200':
+          description: |
+            username correctly recovered from the server
+          content:
+            application/json:
+              schema:
+                description: server returns to username associated to a uid.
+                type: object
+                properties:
+                  username:
+                    $ref: '#/components/schemas/username'
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: '#/components/responses/UnauthorizedError' }
+        "404":
+          description: |
+            the searched username seems not exists
+          content:
+            application/json:
+              schema:
+                description: server returns a not found message
+                type: object
+                properties:
+                  error:
+                    description: verbose message error description returned by server
+                    type: string
+                    minLength: 0
+                    maxLength: 256
+                    pattern: '^.*?$'
+                    example: username not found
+        "500": { $ref: "#/components/responses/InternalServerError" }
+
+    put:
+      security:
+        - bearerAuth: []
+      tags:
+        - "user"
+      operationId: setMyUserName
+      summary: set the username
+      description: |
+        Set the new username to user indicated by userID.
+        If the username is already taken, the request will fail.
+        If the user in not authorized, the request will fail.
+        If the username is not well formatted, the request will fail.
+      requestBody:
+        description: the new username to set to.
+        required: true
+        content:
+          application/json:
+            schema:
+              description: represents the new username that user wants to set.
+              type: object
+              properties:
+                username:
+                  $ref: '#/components/schemas/username'
+
+      responses:
+        "200":
+          description: new username correctly updated.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/user' }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: '#/components/responses/UnauthorizedError' }
+        "500": { $ref: "#/components/responses/InternalServerError" }
+
+  /users/{uid}/posts/:
+    parameters:
+      - name: uid
+        in: path
+        required: true
+        description: the unique ID hooked to a user
+        schema: { $ref: '#/components/schemas/userID' }
+
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - "post"
+      operationId: uploadPhoto
+      summary: create a new post
+      description: |
+        Upload a new post adding a photo to the collection of posts.
+        If the user in not authorized, the request will fail.
+        If the MIME type is not PNG or JPEG the request will fail.
+      requestBody:
+        description: the image to upload as post.
+        required: true
+        content:
+          image/*:
+            schema:
+              $ref: "#/components/schemas/image"
+      responses:
+        "201":
+          description: new post correctly created.
+          content:
+            application/json:
+              schema:
+                description: server returns the post id associated to the image just uploaded.
+                type: object
+                properties:
+                  postid:
+                    $ref: '#/components/schemas/postid'
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/UnauthorizedError" }
+        "500": { $ref: "#/components/responses/InternalServerError" }
+
+  /users/{uid}/posts/{postid}:
+    parameters:
+      - name: uid
+        in: path
+        required: true
+        description: the unique ID hooked to a user.
+        schema: { $ref: '#/components/schemas/userID'}
+      - name: postid
+        in: path
+        required: true
+        description: the unique ID hooked to a post.
+        schema: { $ref: '#/components/schemas/postid' }
+
+    delete:
+      security:
+        - bearerAuth: []
+      tags:
+        - "post"
+      operationId: deletePhoto
+      summary: delete a post
+      description: |
+        User can delete a post, if he is the post author.
+        If the post id doesn't exist, the request will fail.
+        If the user in not authorized, the request will fail.
+        If the user id doesn't exist, the request will fail.
+
+        The request will remove all the comments, too.
+
+      responses:
+        "204":
+          description: post correctly removed.
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/UnauthorizedError" }
+        "500": { $ref: "#/components/responses/InternalServerError" }
+
+  /users/{uid}/following/{fuid}:
+    parameters:
+      - name: uid
+        in: path
+        required: true
+        description: the unique ID hooked to a user.
+        schema: { $ref: '#/components/schemas/userID' }
+      - name: fuid
+        in: path
+        required: true
+        description: the unique ID hooked to a user to follow.
+        schema: { $ref: '#/components/schemas/userID'}
+
+    put:
+      security:
+        - bearerAuth: []
+      tags:
+        - "user"
+      operationId: followUser
+      summary: follow a user
+      description: |
+        the specified uid user want to follow another user.
+        If the followed user is already followed, nothing change.
+        If the user id doesn't exist, the request will fail.
+        If the followed user id doesn't exist, the request will fail.
+        If the user in not authorized, the request will fail.
+        User cannot follow himself.
+
+      responses:
+        "201":
+          description: user correctly followed.
+          content:
+            application/json:
+              schema:
+                description: server responds with the user object created for the new follow.
+                type: object
+                properties:
+                  user_id:
+                    $ref: '#/components/schemas/userID'
+                  username:
+                    $ref: '#/components/schemas/username'
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/UnauthorizedError" }
+        "500": { $ref: "#/components/responses/InternalServerError" }
+
+    delete:
+      security:
+        - bearerAuth: []
+      tags:
+        - "user"
+      operationId: unfollowUser
+      summary: unfollow a user
+      description: |
+        the specified uid user want to unfollow another user.
+        If the followed user isn't already followed, nothing change.
+        If the user id doesn't exists, the request will fail.
+        If the followed user id doesn't exist, the request will fail.
+        If the user in not authorized, the request will fail.
+        User cannot unfollow himself.
+
+      responses:
+        "204":
+          description: user correctly unfollowed.
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/UnauthorizedError" }
+        "500": { $ref: "#/components/responses/InternalServerError" }
+
+  /users/{uid}/muted/{muteduid}:
+    parameters:
+      - name: uid
+        in: path
+        required: true
+        description: the unique ID hooked to a user.
+        schema: { $ref: '#/components/schemas/userID' }
+      - name: muteduid
+        in: path
+        required: true
+        description: the unique ID hooked to a user to mute.
+        schema: { $ref: '#/components/schemas/userID' }
+
+    put:
+      security:
+        - bearerAuth: []
+      tags:
+        - "user"
+      operationId: banUser
+      summary: ban a user
+      description: |
+        the specified uid user want to follow another user.
+        If the banned user is already banned, nothing change.
+        If the user id doesn't exist, the request will fail.
+        If the banned user id doesn't exist, the request will fail.
+        If the user in not authorized, the request will fail.
+        User cannot ban himself.
+
+      responses:
+        "201":
+          description: user correctly banned.
+          content:
+            application/json:
+              schema:
+                description: server returns the user object associated to the user just muted.
+                type: object
+                properties:
+                  muted_user_info:
+                    $ref: '#/components/schemas/user'
+
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/UnauthorizedError" }
+        "404":
+          description: |
+            the searched user to mute seems not exists
+          content:
+            application/json:
+              schema:
+                description: server returns a not found message
+                type: object
+                properties:
+                  error:
+                    description: verbose message error description returned by server
+                    type: string
+                    minLength: 0
+                    maxLength: 256
+                    pattern: '^.*?$'
+                    example: muteduid not found
+        "500": { $ref: "#/components/responses/InternalServerError" }
+
+    delete:
+      security:
+        - bearerAuth: []
+      tags:
+        - "user"
+      operationId: unbanUser
+      summary: unban a user
+      description: |
+        the specified uid user want to unban another user.
+        If the banned user isn't already banned, nothing change.
+        If the user id doesn't exists, the request will fail.
+        If the banned user id doesn't exist, the request will fail.
+        If the user in not authorized, the request will fail.
+        User cannot unban himself.
+
+      responses:
+        "204":
+          description: user correctly unfollowed.
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/UnauthorizedError" }
+        "500": { $ref: "#/components/responses/InternalServerError" }
+
+  /users/{uid}/profile:
+    parameters:
+      - name: uid
+        in: path
+        required: true
+        description: the unique ID hooked to a user.
+        schema: { $ref: '#/components/schemas/userID' }
+
+    get:
+      security:
+        - bearerAuth: []
+      tags:
+        - "user"
+      operationId: getUserProfile
+      summary: get user profile
+      description: |
+        allows getting user's profile information passing the uid.
+        The return values will be all the user information and his upload post stream in reverse chronological order
+      responses:
+        '200':
+          description: |
+            User information correctly recovered from the server
+          content:
+            application/json:
+              schema:
+                description: |
+                  server returns the entire profile of a user, 
+                  including all his personal information and
+                  all the post uploaded.
+                type: object
+                properties:
+                  profile_info:
+                    $ref: '#/components/schemas/profileinfo'
+                  uploaded_posts:
+                    description: contains all the post as array of post object.
+                    type: array
+                    minItems: 0
+                    maxItems: 1000
+                    items:
+                      $ref: '#/components/schemas/post'
+
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: '#/components/responses/UnauthorizedError' }
+        "404":
+          description: |
+            the searched uid seems not exists
+          content:
+            application/json:
+              schema:
+                description: server returns a not found message
+                type: object
+                properties:
+                  error:
+                    description: verbose message error description returned by server
+                    type: string
+                    minLength: 0
+                    maxLength: 256
+                    pattern: '^.*?$'
+                    example: uid not found
+        "500": { $ref: "#/components/responses/InternalServerError" }
+
+  /users/{uid}/mystream:
+    parameters:
+      - name: uid
+        in: path
+        required: true
+        description: the unique ID hooked to a user.
+        schema: { $ref: '#/components/schemas/userID' }
+
+    get:
+      security:
+        - bearerAuth: []
+      tags:
+        - "user"
+        - "post"
+      operationId: getMyStream
+      summary: get user stream photos.
+      description: |
+        Allows getting user stream photos passing the uid.
+        The stream consists in an array of post.
+        For getting a binary image it's necessary using the 'Get Image API'
+      responses:
+        '200':
+          description: |
+            User stream photo correctly recovered from the server
+          content:
+            application/json:
+              schema:
+                description: |
+                  server returns an array of post object
+                type: object
+                properties:
+                  posts:
+                    description: each object is a post objects.
+                    type: array
+                    minItems: 0
+                    maxItems: 1000
+                    items:
+                      $ref: '#/components/schemas/post'
+
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: '#/components/responses/UnauthorizedError' }
+        "404":
+          description: |
+            the searched uid seems not exists
+          content:
+            application/json:
+              schema:
+                description: server returns a not found message
+                type: object
+                properties:
+                  error:
+                    description: verbose message error description returned by server
+                    type: string
+                    minLength: 0
+                    maxLength: 256
+                    pattern: '^.*?$'
+                    example: uid not found
+        "500": { $ref: "#/components/responses/InternalServerError" }
+
+  /posts/{postid}/likes/{uid}:
+    parameters:
+      - name: postid
+        in: path
+        required: true
+        description: the unique ID hooked to a post.
+        schema: { $ref: '#/components/schemas/postid' }
+      - name: uid
+        in: path
+        required: true
+        description: the unique ID hooked to a user.
+        schema: { $ref: '#/components/schemas/userID' }
+
+    get:
+      security:
+        - bearerAuth: []
+      tags:
+        - "post"
+      operationId: getLikePhoto
+      summary: getting user like status for a post
+      description: |
+        Getting user like status for a post.
+        If the post id doesn't exist, the request will fail.
+        If the user in not authorized, the request will fail.
+        If the user id doesn't exist, the request will fail.
+
+      responses:
+        "200":
+          description: like status correctly recovered.
+          content:
+            application/json:
+              schema:
+                description: server responds with the like resource, if it exists.
+                type: object
+                properties:
+                  user_id:
+                    $ref: '#/components/schemas/userID'
+                  postid:
+                    $ref: '#/components/schemas/postid'
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/UnauthorizedError" }
+        "404":
+          description: |
+            the searched like seems not exists
+          content:
+            application/json:
+              schema:
+                description: server returns a not found message and the integer errno (corresponds to 1).
+                type: object
+                properties:
+                  errorno:
+                    description: integer error number returned by server
+                    type: integer
+                    minimum: 0
+                    maximum: 10
+                    example: 1
+                  error:
+                    description: verbose message error description returned by server
+                    type: string
+                    minLength: 0
+                    maxLength: 256
+                    pattern: '^.*?$'
+                    example: like not found
+        "500": { $ref: "#/components/responses/InternalServerError" }
+
+    put:
+      security:
+        - bearerAuth: []
+      tags:
+        - "post"
+      operationId: likePhoto
+      summary: like a post
+      description: |
+        User can put a like to a post.
+        If the post id doesn't exist, the request will fail.
+        If the user in not authorized, the request will fail.
+        If the user id doesn't exist, the request will fail.
+
+      responses:
+        "201":
+          description: like correctly put.
+          content:
+            application/json:
+              schema:
+                description: server responds with the like resource created for the new like.
                 type: object
                 properties:
                   user_id:

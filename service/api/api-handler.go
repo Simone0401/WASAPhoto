@@ -30,6 +30,7 @@ func (rt *_router) Handler() http.Handler {
 	rt.router.DELETE("/users/:uid/posts/:postid", rt.wrap(rt.deletePost, true))
 
 	/* Section LIKE */
+	rt.router.GET("/posts/:postid/likes/:uid", rt.wrap(rt.getLike, true))
 	rt.router.PUT("/posts/:postid/likes/:uid", rt.wrap(rt.likePost, true))
 	rt.router.DELETE("/posts/:postid/likes/:uid", rt.wrap(rt.unlikePost, true))
 
