@@ -1,6 +1,5 @@
 <script>
 import * as base64 from "byte-base64";
-import Modal from "./ImageModal.vue";
 import ImageModal from "./ImageModal.vue";
 
 export default {
@@ -22,6 +21,8 @@ export default {
       contentType: null,
       userPutLike: null,
       numLikes: this.likes,
+      Comments: this.comments,
+      numComments: null,
       errno: null,
       likeIconFill: null,
       modalStatus: false,
@@ -54,7 +55,7 @@ export default {
     },
     getNumberComments() {
       try {
-        return this.comments.length;
+        return this.Comments.length;
       } catch (e) {
         return 0;
       }
@@ -130,17 +131,26 @@ export default {
     hideModal() {
       this.modalStatus = false;
     },
+    updateLikeStatus(likeStatus, numLikes, comments) {
+      this.userPutLike = likeStatus;
+      this.numLikes = numLikes;
+      this.fillLikeBtn();
+      this.Comments = comments;
+      console.log(this.Comments);
+      this.numComments = this.getNumberComments();
+    },
   },
   mounted() {
     this.getPostImage();
     this.getUserLike();
+    this.numComments = this.getNumberComments();
   },
 }
 </script>
 
 <template>
   <div class="d-flex flex-column">
-    <ImageModal v-if="modalStatus" v-show="modalStatus" :uid="uid" :postid="postid" :upload-time="uploadTime" :user-put-like="userPutLike" :comments="comments" @close-modal="hideModal"></ImageModal>
+    <ImageModal v-if="modalStatus" v-show="modalStatus" :uid="uid" :postid="postid" :upload-time="uploadTime" :likes="numLikes" :user_put_like="userPutLike" :comments="Comments" @close-modal="hideModal" @toggle-like="updateLikeStatus"></ImageModal>
     <ErrorMsg v-if="errormsg" :msg="errormsg"></ErrorMsg>
     <!-- Post image -->
     <div class="d-flex flex-row w-100">
@@ -153,8 +163,8 @@ export default {
         <span>{{numLikes}}</span>
       </div>
       <div class="fit">
-        <svg class="feather align-sub"><use href="/feather-sprite-v4.29.0.svg#message-circle"/></svg>
-        <span>{{this.getNumberComments()}}</span>
+        <svg class="feather align-sub comment-icon" @click="showModal"><use href="/feather-sprite-v4.29.0.svg#message-circle"/></svg>
+        <span>{{ numComments }}</span>
       </div>
       <div class="fit">
         <svg class="feather align-sub"><use href="/feather-sprite-v4.29.0.svg#calendar"/></svg>
@@ -186,5 +196,8 @@ img {
 }
 .like-icon:hover {
   fill: #ff9090 !important;
+}
+.comment-icon:hover {
+  fill: rgba(55,170,185,0.61);
 }
 </style>

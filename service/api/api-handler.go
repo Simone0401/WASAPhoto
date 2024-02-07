@@ -25,6 +25,7 @@ func (rt *_router) Handler() http.Handler {
 	rt.router.DELETE("/users/:uid/muted/:muteduid", rt.wrap(rt.unbanUser, true))
 
 	/* ======== POSTS API ========= */
+	rt.router.GET("/posts/:postid", rt.wrap(rt.getPost, true))
 	rt.router.POST("/users/:uid/posts/", rt.wrap(rt.uploadPost, true))
 	rt.router.GET("/images/:imageid", rt.wrap(rt.getImage, true))
 	rt.router.DELETE("/users/:uid/posts/:postid", rt.wrap(rt.deletePost, true))

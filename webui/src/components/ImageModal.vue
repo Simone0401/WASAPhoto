@@ -1,33 +1,60 @@
 <script>
+import Comment from "./Comment.vue";
+import ErrorMsg from "./ErrorMsg.vue";
+import LoadingSpinner from "./LoadingSpinner.vue";
+
 export default {
   name: "ImageModal",
+  components: {LoadingSpinner, ErrorMsg, Comment},
   props: {
     uid: Number,
     postid: Number,
     comments: Array,
     uploadTime: String,
-    userPutLike: Boolean,
+    likes: Number,
+    user_put_like: Boolean,
   },
   data: function () {
     return {
       errormsg: null,
       loading: false,
       altText: "Post image",
-      userPutLike: this.userPutLike,
+      userPutLike: this.user_put_like,
       numLikes: this.likes,
       likeIconFill: null,
       imageSrc: null,
       usernameOwner: null,
       displayMenu: false,
       isOwner: null,
+      Comments: this.comments,
+      numComments: null,
     }
   },
   methods: {
+    async refresh() {
+      this.loading = true;
+      this.errormsg = null;
+      try {
+        let response = await this.$axios.get("/posts/" + this.postid, {
+          headers: {
+            "Authorization": sessionStorage.userID,
+          },
+        });
+        this.numLikes = response.data.post.likes;
+        this.Comments = response.data.post.comments;
+      } catch (e) {
+        this.errormsg = e.toString();
+      }
+      this.loading = false;
+      this.numComments = this.getNumberComments();
+      this.$emit('toggle-like', this.userPutLike, this.numLikes, this.Comments);
+    },
     displayImage() {
       this.imageSrc = document.getElementById("image-id-" + this.postid).src;
     },
     closeModal() {
       this.$emit("close-modal");
+      document.body.style.overflow = "scroll";
     },
     getUsername() {
       this.usernameOwner = document.getElementById("username-profile").innerHTML;
@@ -60,12 +87,142 @@ export default {
       imageName += (this.imageSrc.charAt(11) === "p") ? ".png" : ".jpg";
       a.download = imageName;
       a.click();
+    },
+    getNumberComments() {
+      try {
+        return this.Comments.length;
+      } catch (e) {
+        return 0;
+      }
+    },
+    async toggleLike() {
+      if (!this.userPutLike) {
+        await this.putLike();
+      } else {
+        await this.deleteLike();
+      }
+      this.$emit('toggle-like', this.userPutLike, this.numLikes, this.Comments);
+    },
+    async getUserLike() {
+      this.loading = true;
+      this.errormsg = null;
+      try {
+        let response = await this.$axios.get("/posts/" + this.postid + "/likes/" + sessionStorage.userID, {
+          headers: {
+            "Authorization": sessionStorage.userID,
+          },
+        });
+        this.userPutLike = true;
+      } catch (e) {
+        this.errno = e.response.data.errno;
+        if (this.errno !== 1) {
+          this.errormsg = e.toString();
+        } else {
+          this.errormsg = null;
+          this.userPutLike = false;
+        }
+      } finally {
+        this.fillLikeBtn();
+        this.loading = false;
+      }
+    },
+    async putLike() {
+      this.loading = true;
+      this.errormsg = null;
+      try {
+        let response = await this.$axios.put("/posts/" + this.postid + "/likes/" + sessionStorage.userID, {}, {
+          headers: {
+            "Authorization": sessionStorage.userID,
+          },
+        });
+        this.userPutLike = true;
+        this.likeIconFill = "#ff3636";
+        this.numLikes++;
+      } catch (e) {
+        this.errormsg = e.toString();
+      }
+      this.loading = false;
+    },
+    async deleteLike() {
+      this.loading = true;
+      this.errormsg = null;
+      try {
+        let response = await this.$axios.delete("/posts/" + this.postid + "/likes/" + sessionStorage.userID, {
+          headers: {
+            "Authorization": sessionStorage.userID,
+          },
+        });
+        this.userPutLike = false;
+        this.likeIconFill = "#ffffff";
+        this.numLikes--;
+      } catch (e) {
+        this.errormsg = e.toString();
+      }
+      this.loading = false;
+    },
+    fillLikeBtn() {
+      this.likeIconFill = this.userPutLike ? "#ff3636" : "#ffffff";
+    },
+    async addComment() {
+      this.loading = true;
+      this.errormsg = null;
+      let textComment = document.getElementById("commentInput").value;
+      try {
+        textComment = textComment.trim();
+        if (textComment.length === 0 || textComment.length > 255) {
+          throw new Error("Comment length must be between 1 and 255 characters");
+        } else if (!textComment.match(/^[a-zA-Z0-9.,!?;:'"\s]+$/)) {
+          throw new Error("Comment can only contain letters, numbers, punctuation and spaces");
+        }
+
+        let response = await this.$axios.post("/posts/" + this.postid + "/comments/", {
+          "comment": {
+            "uid": Number(sessionStorage.userID),
+            "message": textComment,
+          }
+        }, {
+          headers: {
+            "Authorization": sessionStorage.userID,
+            "Content-Type": "application/json",
+          },
+        });
+        await this.refresh();
+        document.getElementById("commentInput").value = "";
+        this.$emit('toggle-like', this.userPutLike, this.numLikes, this.Comments);
+      } catch (e) {
+        this.errormsg = e.toString();
+      }
+      this.loading = false;
+      this.numComments = this.getNumberComments();
+      this.scrollCommentsToEnd();
+    },
+    enterPressed(event) {
+      if(event.keyCode === 13) {
+        this.addComment();
+      }
+    },
+    inputCommentFocus() {
+      document.getElementById("commentInput").focus();
+    },
+    scrollCommentsToEnd() {
+      const commentContainer = this.$refs.commentContainer;
+      // Make sure the reference exists and has a scroll method.
+      if (commentContainer && commentContainer.scrollTo) {
+        // Scroll to the bottom of the container.
+        commentContainer.scrollTo({
+          top: commentContainer.scrollHeight,
+          behavior: 'smooth' // Optional, adds animation
+        });
+      }
     }
   },
   mounted() {
     this.displayImage();
     this.getUsername();
     this.isOwnerPost();
+    this.getUserLike();
+    this.numComments = this.getNumberComments();
+    document.body.style.overflow = "hidden";
   },
 }
 </script>
@@ -107,8 +264,39 @@ export default {
             </div>
           </div>
         </div>
+        <!-- Post information -->
+        <div class="d-flex flex-row w-100 pl">
+          <div class="fit">
+            <svg class="feather align-sub like-icon" :id="'like-icon-' + postid" :style="'fill:' + likeIconFill" @click="toggleLike"><use href="/feather-sprite-v4.29.0.svg#heart"/></svg>
+            <span>{{ numLikes }}</span>
+          </div>
+          <div class="fit">
+            <svg class="feather align-sub comment-icon" @click="inputCommentFocus"><use href="/feather-sprite-v4.29.0.svg#message-circle"/></svg>
+            <span>{{ numComments }}</span>
+          </div>
+        </div>
       </div>
-      <div class="post-comments">
+      <div class="post-comments h-65 border border-2 border-radius overflow-scroll" ref="commentContainer">
+        <Comment v-for="comment in Comments" :comment="comment" @removed-comment="refresh"></Comment>
+        <ErrorMsg v-if="errormsg" :msg="errormsg"></ErrorMsg>
+        <loading-spinner :loading="loading"></loading-spinner>
+        <!-- Background placeholder for no comments post -->
+        <div class="h-100 d-flex flex-column align-items-center justify-content-center nocomment-section" v-if="!Comments">
+          <div class="nocomment-icon-container">
+            <svg class="feather nocomment-icon" style="width: 20px; height: 20px;"><use href="/feather-sprite-v4.29.0.svg#message-circle"/></svg>
+          </div>
+          <div>
+            <p class="fw-bold">No comment yet!</p>
+          </div>
+        </div>
+      </div>
+      <!-- input for submitting comment -->
+      <div class="d-flex flex-column">
+        <input type="text" class="mt-2 form-control mb-2 mr-sm-2" id="commentInput" placeholder="Add your comment..." @keydown="enterPressed">
+        <button class="btn btn-dark border-radius" type="submit" @click="addComment">
+          Send
+          <svg class="feather nocomment-icon" style="position: relative; top: -2px;"><use href="/feather-sprite-v4.29.0.svg#send"/></svg>
+        </button>
       </div>
     </div>
   </div>
@@ -151,6 +339,7 @@ export default {
 }
 .modal-post-data {
   padding-left: 10px;
+  padding-right: 10px;
 }
 .post-icon {
   margin-left: 18.5em;
@@ -215,5 +404,47 @@ export default {
 .dropdown-item-save:hover {
   color: #36a200;
   cursor: default;
+}
+.border-radius {
+  border-radius: var(--bs-border-radius);
+}
+.nocomment-section {
+  color: rgba(63,60,62,0.38);
+}
+.nocomment-icon-container {
+  position: relative;
+}
+.nocomment-icon-container::before {
+  content: "";
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  width: 100%;
+  height: 2px;
+  background-color: #bbb9bb;
+  transform: rotate(45deg);
+  transform-origin: top left;
+}
+.fit {
+  width: fit-content;
+  padding-right: 10px;
+}
+.align-sub {
+  vertical-align: sub;
+}
+.fit > span {
+  padding-left: 2px;
+}
+.like-icon:hover {
+  fill: #ff9090 !important;
+}
+.comment-icon:hover {
+  fill: rgba(55,170,185,0.61);
+}
+.pl {
+  padding-left: 0.75em;
+}
+.h-65 {
+  height: 65% !important;
 }
 </style>

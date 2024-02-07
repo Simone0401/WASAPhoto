@@ -40,6 +40,10 @@ func (rt *_router) getUsername(w http.ResponseWriter, r *http.Request, params ht
 		return
 	}
 
+	result := map[string]string{
+		"username": username,
+	}
+
 	w.Header().Set("Content-Type", "application-json")
-	_ = json.NewEncoder(w).Encode(username)
+	_ = json.NewEncoder(w).Encode(result)
 }

@@ -71,6 +71,7 @@ type AppDatabase interface {
 	GetFollowed(uid uint64) ([]uint64, error)
 	GetProfileInfo(uid uint64) (Profile, error)
 	GetProfilePosts(uid uint64) ([]Post, error)
+	GetPost(postid uint64) (Post, error)
 
 	Ping() error
 }

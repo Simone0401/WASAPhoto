@@ -1,18 +1,20 @@
 <script>
 import ProfileInformation from "../components/ProfileInformation.vue";
 import Post from "../components/Post.vue";
-import Modal from "../components/ImageModal.vue";
 import ImageModal from "../components/ImageModal.vue";
 import router from "../router";
+import LoadingSpinner from "../components/LoadingSpinner.vue";
 
 export default {
-  components: {ImageModal, Modal, Post, ProfileInformation},
+  components: {LoadingSpinner, ImageModal, Post, ProfileInformation},
 	data: function() {
 		return {
 			errormsg: null,
 			loading: false,
 			profile: null,
       justifyContent: null,
+      imageUrl: null,
+      image: null,
 		}
 	},
 	methods: {
@@ -48,6 +50,54 @@ export default {
         this.justifyContent = "";
       }
     },
+    canUpload() {
+      try {
+        return this.profile.profile_info.user.user_id == sessionStorage.userID;
+      } catch (e) {
+        return false;
+      }
+    },
+    uploadImage() {
+      document.getElementById("img-uploader").click();
+    },
+    getInputValue(event) {
+      this.loading = true;
+      const files = event.target.files;
+      let filename = files[0].name;
+      const fileReader = new FileReader();
+      fileReader.addEventListener('load', () => {
+        this.imageUrl = fileReader.result;
+      })
+      fileReader.readAsDataURL(files[0]);
+      this.image = files[0];
+      try {
+        let contentType = this.setImageType(filename);
+        if (contentType === null) {
+          throw new Error("Invalid file type");
+        }
+        let response = this.$axios.post("/users/" + sessionStorage.userID + "/posts/", this.image, {
+          headers: {
+            "Authorization": sessionStorage.userID,
+            "Content-Type": contentType,
+          },
+        });
+      } catch (e) {
+        this.errormsg = e.toString();
+      }
+      setTimeout(() => {
+        this.loading = false;
+        location.reload();
+      }, 2000);
+    },
+    setImageType(filename) {
+      let type = filename.split('.').pop();
+      if (type === "png") {
+        return "image/png";
+      } else if (type === "jpg" || type === "jpeg") {
+        return "image/jpeg";
+      }
+      return null;
+    }
 	},
 	mounted() {
 		this.refresh();
@@ -60,21 +110,15 @@ export default {
 
 <template>
 	<div>
-		<div
-			class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+		<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
 			<h1 class="h2">Home page</h1>
 			<div class="btn-toolbar mb-2 mb-md-0">
 				<div class="btn-group me-2">
 					<button type="button" class="btn btn-sm btn-outline-secondary" @click="refresh">
 						Refresh
 					</button>
-					<button type="button" class="btn btn-sm btn-outline-secondary" @click="exportList">
+					<button type="button" class="btn btn-sm btn-outline-secondary" @click="">
 						Export
-					</button>
-				</div>
-				<div class="btn-group me-2">
-					<button type="button" class="btn btn-sm btn-outline-primary" @click="newItem">
-						New
 					</button>
 				</div>
 			</div>
@@ -94,6 +138,17 @@ export default {
           <Post class="img-thumbnail p-2 mx-4 mt-3" v-if="profile" v-for="post in profile.uploaded_post" :uid="post.uid" :postid="post.postid" :likes="post.likes" :uploadTime="post.upload_datetime" :comments="post.comments"></Post>
       </div>
     </div>
+  </div>
+  <div class="mt-2 mb-4" v-if="loading">
+    <LoadingSpinner :loading="true"></LoadingSpinner>
+  </div>
+  <div class="btn-add" v-if="canUpload">
+    <button class="btn btn-dark rounded-circle" @click="uploadImage">
+      <svg class="feather align-sup add-icon">
+        <use href="/feather-sprite-v4.29.0.svg#plus-square" class="mt-2"/>
+      </svg>
+    </button>
+    <input type="file" id="img-uploader" accept="image/*" @change="getInputValue" style="display: none;">
   </div>
 </template>
 
@@ -126,5 +181,21 @@ export default {
 }
 .img-thumbnail .preview {
   cursor: pointer;
+}
+.btn-add {
+  width: 3em;
+  height: 3em;
+  position: fixed;
+  bottom: 0;
+  right: 0;
+  margin: 0 2em 1.5em 0;
+}
+.align-sup {
+  vertical-align: super;
+}
+.add-icon {
+  transform: translate(0px, 6px);
+  width: 20px !important;
+  height: 20px !important;
 }
 </style>
