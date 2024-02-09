@@ -1,12 +1,11 @@
 <script>
 import ProfileInformation from "../components/ProfileInformation.vue";
-import Post from "../components/Post.vue";
-import ImageModal from "../components/ImageModal.vue";
+import PostItem from "../components/PostItem.vue";
 import router from "../router";
 import LoadingSpinner from "../components/LoadingSpinner.vue";
 
 export default {
-  components: {LoadingSpinner, ImageModal, Post, ProfileInformation},
+  components: {LoadingSpinner, PostItem, ProfileInformation},
 	data: function() {
 		return {
 			errormsg: null,
@@ -21,8 +20,13 @@ export default {
 		async refresh() {
 			this.loading = true;
 			this.errormsg = null;
+      const url = window.location.href;
+
+      const parts = url.split("/");
+      const uid = parts[parts.length - 1];
+
 			try {
-				let response = await this.$axios.get("/users/" + sessionStorage.userID + "/profile", {
+				let response = await this.$axios.get("/users/" + uid + "/profile", {
           headers: {
             "Authorization": sessionStorage.userID,
           },
@@ -30,13 +34,17 @@ export default {
 				this.profile = response.data;
         document.getElementById("log-out").style.display = "block";
         document.getElementById("search").style.display = "block";
+        document.getElementById("profile").style.display = "block";
 			} catch (e) {
 				this.errormsg = e.toString();
-        this.errormsg += ". Please log in again."
-        setTimeout(() => {
-          router.push("/login");
-        }, 3000);
-			}
+        let statusCode = e.response.status;
+        if (statusCode === 401) {
+          this.errormsg += ". Please log in again."
+          setTimeout(() => {
+            router.push("/login");
+          }, 3000);
+        }
+      }
 			this.loading = false;
 		},
     moreElement() {
@@ -60,7 +68,7 @@ export default {
     uploadImage() {
       document.getElementById("img-uploader").click();
     },
-    getInputValue(event) {
+    async getInputValue(event) {
       this.loading = true;
       const files = event.target.files;
       let filename = files[0].name;
@@ -75,7 +83,7 @@ export default {
         if (contentType === null) {
           throw new Error("Invalid file type");
         }
-        let response = this.$axios.post("/users/" + sessionStorage.userID + "/posts/", this.image, {
+        await this.$axios.post("/users/" + sessionStorage.userID + "/posts/", this.image, {
           headers: {
             "Authorization": sessionStorage.userID,
             "Content-Type": contentType,
@@ -111,14 +119,11 @@ export default {
 <template>
 	<div>
 		<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-			<h1 class="h2">Home page</h1>
+			<h1 class="h2">Profile page</h1>
 			<div class="btn-toolbar mb-2 mb-md-0">
 				<div class="btn-group me-2">
 					<button type="button" class="btn btn-sm btn-outline-secondary" @click="refresh">
 						Refresh
-					</button>
-					<button type="button" class="btn btn-sm btn-outline-secondary" @click="">
-						Export
 					</button>
 				</div>
 			</div>
@@ -134,8 +139,8 @@ export default {
           <svg class="feather align-sub post-icon" style="width: 20px; height: 20px;"><use href="/feather-sprite-v4.29.0.svg#grid"/></svg>
         </div>
       </div>
-      <div :class="'d-grid grid-post w-100 post-section ' + justifyContent">
-          <Post class="img-thumbnail p-2 mx-4 mt-3" v-if="profile" v-for="post in profile.uploaded_post" :uid="post.uid" :postid="post.postid" :likes="post.likes" :uploadTime="post.upload_datetime" :comments="post.comments"></Post>
+      <div :class="'d-grid grid-post w-100 post-section ' + justifyContent" v-if="profile">
+          <PostItem class="img-thumbnail p-2 mx-4 mt-3" v-for="(post, index) in profile.uploaded_post" :key="index" :uid="post.uid" :postid="post.postid" :likes="post.likes" :uploadTime="post.upload_datetime" :comments="post.comments"></PostItem>
       </div>
     </div>
   </div>

@@ -1,11 +1,11 @@
 <script>
-import Comment from "./Comment.vue";
 import ErrorMsg from "./ErrorMsg.vue";
 import LoadingSpinner from "./LoadingSpinner.vue";
+import CommentItem from "./CommentItem.vue";
 
 export default {
   name: "ImageModal",
-  components: {LoadingSpinner, ErrorMsg, Comment},
+  components: {CommentItem, LoadingSpinner, ErrorMsg},
   props: {
     uid: Number,
     postid: Number,
@@ -107,7 +107,7 @@ export default {
       this.loading = true;
       this.errormsg = null;
       try {
-        let response = await this.$axios.get("/posts/" + this.postid + "/likes/" + sessionStorage.userID, {
+        await this.$axios.get("/posts/" + this.postid + "/likes/" + sessionStorage.userID, {
           headers: {
             "Authorization": sessionStorage.userID,
           },
@@ -130,7 +130,7 @@ export default {
       this.loading = true;
       this.errormsg = null;
       try {
-        let response = await this.$axios.put("/posts/" + this.postid + "/likes/" + sessionStorage.userID, {}, {
+        await this.$axios.put("/posts/" + this.postid + "/likes/" + sessionStorage.userID, {}, {
           headers: {
             "Authorization": sessionStorage.userID,
           },
@@ -147,7 +147,7 @@ export default {
       this.loading = true;
       this.errormsg = null;
       try {
-        let response = await this.$axios.delete("/posts/" + this.postid + "/likes/" + sessionStorage.userID, {
+        await this.$axios.delete("/posts/" + this.postid + "/likes/" + sessionStorage.userID, {
           headers: {
             "Authorization": sessionStorage.userID,
           },
@@ -175,7 +175,7 @@ export default {
           throw new Error("Comment can only contain letters, numbers, punctuation and spaces");
         }
 
-        let response = await this.$axios.post("/posts/" + this.postid + "/comments/", {
+        await this.$axios.post("/posts/" + this.postid + "/comments/", {
           "comment": {
             "uid": Number(sessionStorage.userID),
             "message": textComment,
@@ -277,7 +277,7 @@ export default {
         </div>
       </div>
       <div class="post-comments h-65 border border-2 border-radius overflow-scroll" ref="commentContainer">
-        <Comment v-for="comment in Comments" :comment="comment" @removed-comment="refresh"></Comment>
+        <CommentItem v-for="(comment, index) in Comments" :key="index" :comment="comment" @removed-comment="refresh"></CommentItem>
         <ErrorMsg v-if="errormsg" :msg="errormsg"></ErrorMsg>
         <loading-spinner :loading="loading"></loading-spinner>
         <!-- Background placeholder for no comments post -->

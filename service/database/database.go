@@ -42,6 +42,7 @@ type AppDatabase interface {
 	SetUsername(uid uint64, name string) error
 	GetUserByID(uid uint64) (User, error)
 	GetUserByUsername(username string) (User, error)
+	SearchUserByUsername(username string) ([]User, error)
 	CheckExistsByUsername(username string) (bool, error)
 	CheckExistsByUID(uid uint64) (bool, error)
 	CreateUser(username string) (User, error)

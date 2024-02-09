@@ -10,7 +10,7 @@ import (
 )
 
 // getUserProfile allows getting user's profile information passing the uid.
-// If the user in not authorized, the request will fail.
+// If the user is not authorized, the request will fail.
 // If the user id doesn't exist, the request will fail.
 // The return values will be all the user information and his upload post stream in reverse chronological order
 // The stream consists in an array of post. (Check API documentation for detail)
@@ -70,6 +70,20 @@ func (rt *_router) getUserProfile(w http.ResponseWriter, r *http.Request, params
 	if !check {
 		context.Logger.Error("Error in getting profile request! User that makes request doesn't exist!")
 		w.WriteHeader(http.StatusForbidden)
+		return
+	}
+
+	// Check ban information
+	banned, err := rt.db.HasBanned(uid, context.Uid)
+	if err != nil {
+		context.Logger.Error("Error getting ban information for the user in getting profile request\nDetail: ", err.Error())
+		http.Error(w, "Something wrong retrieving profile", http.StatusInternalServerError)
+		return
+	}
+
+	if banned {
+		context.Logger.Error("Error in getting profile request! User is banned!")
+		w.WriteHeader(http.StatusNotFound)
 		return
 	}
 

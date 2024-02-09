@@ -1,13 +1,23 @@
 <script setup>
 import { RouterLink, RouterView } from 'vue-router'
+import SearchItem from "./components/SearchItem.vue";
 </script>
 <script>
 export default {
+  data: function () {
+    return {
+      errormsg: null,
+      loading: false,
+      wantSearch: false,
+      sessionUid: null,
+    }
+  },
   methods: {
     logOut() {
       sessionStorage.clear();
       this.hideLogOut();
       this.hideSearch();
+      this.hideProfile();
     },
     hideLogOut() {
       let uid = sessionStorage.getItem("userID");
@@ -21,11 +31,31 @@ export default {
         document.getElementById("search").style.display = "none";
       }
     },
+    toggleSearch() {
+      this.wantSearch = !this.wantSearch;
+      if (this.wantSearch) {
+        document.getElementById("search").classList.add("no-active");
+      } else {
+        document.getElementById("search").classList.remove("no-active");
+      }
+    },
+    hideProfile() {
+      let uid = sessionStorage.getItem("userID");
+      if (uid === null) {
+        document.getElementById("profile").style.display = "none";
+      } else {
+        this.sessionUid = uid;
+      }
+    },
+    reload() {
+      location.reload();
+    }
   },
   mounted() {
     this.hideLogOut();
     this.hideSearch();
-  }
+    this.hideProfile();
+  },
 }
 </script>
 
@@ -47,19 +77,19 @@ export default {
 					</h6>
 					<ul class="nav flex-column">
 						<li class="nav-item">
-							<RouterLink to="/" class="nav-link">
+							<RouterLink to="/home" class="nav-link">
 								<svg class="feather"><use href="/feather-sprite-v4.29.0.svg#home"/></svg>
 								Home
 							</RouterLink>
 						</li>
-						<li class="nav-item">
-							<RouterLink to="/link1" class="nav-link">
-								<svg class="feather"><use href="/feather-sprite-v4.29.0.svg#layout"/></svg>
-								Menu item 1
+						<li class="nav-item" id="profile" @click="reload">
+							<RouterLink :to='"/profile/" + sessionUid' class="nav-link">
+								<svg class="feather"><use href="/feather-sprite-v4.29.0.svg#user"/></svg>
+								Profile
 							</RouterLink>
 						</li>
-						<li class="nav-item" id="search">
-							<RouterLink to="/link2" class="nav-link search">
+						<li class="nav-item" id="search" @click="toggleSearch">
+							<RouterLink to="" class="nav-link search no-active">
 								<svg class="feather"><use href="/feather-sprite-v4.29.0.svg#search"/></svg>
 								Search
 							</RouterLink>
@@ -84,10 +114,11 @@ export default {
 						</li>
 					</ul>
 				</div>
+        <SearchItem v-if="wantSearch"></SearchItem>
 			</nav>
 
 			<main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
-				<RouterView />
+				<RouterView @logged-in="hideProfile"/>
 			</main>
 		</div>
 	</div>
@@ -99,5 +130,8 @@ export default {
 }
 .search:hover {
   color: #0d41ff !important;
+}
+.no-active {
+  color: #333 !important;
 }
 </style>

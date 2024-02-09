@@ -9,9 +9,6 @@ func (db *appdbimpl) HasBanned(userid uint64, banneduid uint64) (bool, error) {
 		return false, err
 	}
 
-	if count == 0 {
-		return false, err
-	}
+	return count > 0, err
 
-	return true, err
 }

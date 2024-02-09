@@ -196,6 +196,61 @@ paths:
         "401": { $ref: '#/components/responses/UnauthorizedError' }
         "500": { $ref: "#/components/responses/InternalServerError" }
 
+  /users/:
+    parameters:
+      - name: search
+        in: query
+        required: true
+        description: the username (or part of it) to search
+        schema: { $ref: '#/components/schemas/username' }
+
+    get:
+      security:
+        - bearerAuth: []
+      tags:
+        - "user"
+      operationId: getUserByUsername
+      summary: get user profile
+      description: |
+        allows getting user's struct passing his username (or part of it)
+
+      responses:
+        '200':
+          description: |
+            user information correctly recovered from the server
+          content:
+            application/json:
+              schema:
+                description: server returns user_id and username associated to a user.
+                type: object
+                properties:
+                  users:
+                    description: contains all the users as array of user object.
+                    type: array
+                    minItems: 0
+                    maxItems: 1000
+                    items:
+                      $ref: '#/components/schemas/user'
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: '#/components/responses/UnauthorizedError' }
+        "404":
+          description: |
+            the searched username seems not exists
+          content:
+            application/json:
+              schema:
+                description: server returns a not found message
+                type: object
+                properties:
+                  error:
+                    description: verbose message error description returned by server
+                    type: string
+                    minLength: 0
+                    maxLength: 256
+                    pattern: '^.*?$'
+                    example: username not found
+        "500": { $ref: "#/components/responses/InternalServerError" }
+
   /users/{uid}/posts/:
     parameters:
       - name: uid

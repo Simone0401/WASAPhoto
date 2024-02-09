@@ -2,7 +2,7 @@
 import ErrorMsg from "./ErrorMsg.vue";
 
 export default {
-  name: "Comment",
+  name: "CommentItem",
   components: {ErrorMsg},
   props: {
     comment: Object,
@@ -56,6 +56,9 @@ export default {
     },
   },
   mounted() {
+    this.refresh();
+  },
+  updated() {
     this.refresh();
   },
 }

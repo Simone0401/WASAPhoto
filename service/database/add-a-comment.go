@@ -15,18 +15,13 @@ func (db *appdbimpl) AddComment(userid uint64, postid uint64, message string) (C
 	}
 
 	commentId = commentId + 1
-	_, err = db.c.Exec("INSERT INTO comment(commentid, message, timestamp, postid, uid) VALUES (?, ?, datetime('now', '+1 hours'), ?, ?)",
-		commentId, message, postid, userid)
+	_, err = db.c.Exec("INSERT INTO comment(commentid, message, timestamp, postid, uid) VALUES (?, ?, datetime('now', '+1 hours'), ?, ?)", commentId, message, postid, userid)
 	if err != nil {
 		return Comment{}, err
 	}
 
 	var comment Comment
-	err = db.c.QueryRow("SELECT * FROM comment WHERE commentid = ?", commentId).Scan(&comment.Commentid,
-		&comment.Message,
-		&comment.Datetime,
-		&comment.Postid,
-		&comment.Userid)
+	err = db.c.QueryRow("SELECT * FROM comment WHERE commentid = ?", commentId).Scan(&comment.Commentid, &comment.Message, &comment.Datetime, &comment.Postid, &comment.Userid)
 	if err != nil {
 		return Comment{}, err
 	}

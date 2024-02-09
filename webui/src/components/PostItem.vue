@@ -3,7 +3,7 @@ import * as base64 from "byte-base64";
 import ImageModal from "./ImageModal.vue";
 
 export default {
-  name: "Post",
+  name: "PostItem",
   components: {ImageModal},
   props: {
     uid: Number,
@@ -71,7 +71,7 @@ export default {
       this.loading = true;
       this.errormsg = null;
       try {
-        let response = await this.$axios.get("/posts/" + this.postid + "/likes/" + sessionStorage.userID, {
+        await this.$axios.get("/posts/" + this.postid + "/likes/" + sessionStorage.userID, {
           headers: {
             "Authorization": sessionStorage.userID,
           },
@@ -94,7 +94,7 @@ export default {
       this.loading = true;
       this.errormsg = null;
       try {
-        let response = await this.$axios.put("/posts/" + this.postid + "/likes/" + sessionStorage.userID, {}, {
+        await this.$axios.put("/posts/" + this.postid + "/likes/" + sessionStorage.userID, {}, {
           headers: {
             "Authorization": sessionStorage.userID,
           },
@@ -110,7 +110,7 @@ export default {
       this.loading = true;
       this.errormsg = null;
       try {
-        let response = await this.$axios.delete("/posts/" + this.postid + "/likes/" + sessionStorage.userID, {
+        await this.$axios.delete("/posts/" + this.postid + "/likes/" + sessionStorage.userID, {
           headers: {
             "Authorization": sessionStorage.userID,
           },
@@ -136,7 +136,6 @@ export default {
       this.numLikes = numLikes;
       this.fillLikeBtn();
       this.Comments = comments;
-      console.log(this.Comments);
       this.numComments = this.getNumberComments();
     },
   },

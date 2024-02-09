@@ -1,7 +1,6 @@
 <script>
 import LoadingSpinner from "../components/LoadingSpinner.vue";
 import ErrorMsg from "../components/ErrorMsg.vue";
-import router from "../router";
 
 export default {
     components: {ErrorMsg, LoadingSpinner},
@@ -56,7 +55,8 @@ export default {
               username: this.username,
             });
             sessionStorage.userID = response.data.user_id;
-            this.$router.push("/home");
+            this.$router.push("/profile/" + sessionStorage.userID);
+            this.$emit("logged-in");
           } catch (e) {
             this.errormsg = "Error " + e.response.status + ": " + e.response.data;
             setTimeout(() => {

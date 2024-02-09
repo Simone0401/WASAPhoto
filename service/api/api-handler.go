@@ -13,10 +13,12 @@ func (rt *_router) Handler() http.Handler {
 	rt.router.POST("/session", rt.wrap(rt.doLogin, false))
 
 	/* ======== USERNAME API ========= */
+	rt.router.GET("/users/", rt.wrap(rt.getUsers, true))
 	rt.router.GET("/users/:uid/username", rt.wrap(rt.getUsername, true))
 	rt.router.PUT("/users/:uid/username", rt.wrap(rt.setUsername, true))
 
 	/* ======== FOLLOW API ========= */
+	rt.router.GET("/users/:uid/following/:fuid", rt.wrap(rt.getFollowing, true))
 	rt.router.PUT("/users/:uid/following/:fuid", rt.wrap(rt.followUser, true))
 	rt.router.DELETE("/users/:uid/following/:fuid", rt.wrap(rt.unfollowUser, true))
 
