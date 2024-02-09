@@ -340,6 +340,48 @@ paths:
         description: the unique ID hooked to a user to follow.
         schema: { $ref: '#/components/schemas/userID'}
 
+    get:
+      security:
+        - bearerAuth: []
+      tags:
+        - "user"
+      operationId: getFollowed
+      summary: get followed user
+      description: |
+        allows getting followed user passing the fuid
+
+      responses:
+        '200':
+          description: |
+            followed correctly recovered from the server
+          content:
+            application/json:
+              schema:
+                description: server returns the user associated to fuid.
+                type: object
+                properties:
+                  user:
+                    $ref: '#/components/schemas/user'
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: '#/components/responses/UnauthorizedError' }
+        "404":
+          description: |
+            the searched followed seems not exists
+          content:
+            application/json:
+              schema:
+                description: server returns a not found message
+                type: object
+                properties:
+                  error:
+                    description: verbose message error description returned by server
+                    type: string
+                    minLength: 0
+                    maxLength: 256
+                    pattern: '^.*?$'
+                    example: followed not found
+        "500": { $ref: "#/components/responses/InternalServerError" }
+
     put:
       security:
         - bearerAuth: []
@@ -406,6 +448,50 @@ paths:
         required: true
         description: the unique ID hooked to a user to mute.
         schema: { $ref: '#/components/schemas/userID' }
+
+    get:
+      security:
+        - bearerAuth: []
+      tags:
+        - "user"
+      operationId: getBanStatus
+      summary: get ban status
+      description: |
+        Allows getting information on ban status for a specific uid relatives to a ban uid.
+        If the user id doesn't exist, the request will fail.
+        If the banned user id doesn't exist, the request will fail.
+        If the user in not authorized, the request will fail.
+      responses:
+        '200':
+          description: |
+            ban status correctly recovered from the server
+          content:
+            application/json:
+              schema:
+                description: server returns to user already banned.
+                type: object
+                properties:
+                  muted_user_info:
+                    $ref: '#/components/schemas/user'
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: '#/components/responses/UnauthorizedError' }
+        "404":
+          description: |
+            the searched ban resource seems not exists
+          content:
+            application/json:
+              schema:
+                description: server returns a not found message
+                type: object
+                properties:
+                  error:
+                    description: verbose message error description returned by server
+                    type: string
+                    minLength: 0
+                    maxLength: 256
+                    pattern: '^.*?$'
+                    example: ban not found
+        "500": { $ref: "#/components/responses/InternalServerError" }
 
     put:
       security:

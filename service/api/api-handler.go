@@ -23,6 +23,7 @@ func (rt *_router) Handler() http.Handler {
 	rt.router.DELETE("/users/:uid/following/:fuid", rt.wrap(rt.unfollowUser, true))
 
 	/* ======== MUTE API ========= */
+	rt.router.GET("/users/:uid/muted/:muteduid", rt.wrap(rt.getMuted, true))
 	rt.router.PUT("/users/:uid/muted/:muteduid", rt.wrap(rt.banUser, true))
 	rt.router.DELETE("/users/:uid/muted/:muteduid", rt.wrap(rt.unbanUser, true))
 

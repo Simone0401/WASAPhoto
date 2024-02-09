@@ -1,5 +1,8 @@
 <script>
+import ErrorMsg from "./ErrorMsg.vue";
+
 export default {
+  components: {ErrorMsg},
   props: {
     user_id: Number,
     username: String,
@@ -9,13 +12,13 @@ export default {
   },
   data: function () {
     return {
-      errormsg: null,
+      errorBanOrFollow: null,
       loading: false,
-      profile: null,
       isOwner: false,
       followed: false,
       followers: this.numfollowers,
       following: this.numfollowing,
+      hasBan: false,
     }
   },
   methods: {
@@ -24,7 +27,7 @@ export default {
     },
     async follow() {
       this.loading = true;
-      this.errormsg = null;
+      this.errorBanOrFollow = null;
       try {
         await this.$axios.put("/users/" + sessionStorage.userID + "/following/" + this.user_id, {}, {
           headers: {
@@ -34,13 +37,13 @@ export default {
         this.followed = true;
         this.followers++;
       } catch (e) {
-        this.errormsg = e.toString();
+        this.errorBanOrFollow = e.toString();
       }
       this.loading = false;
     },
     async unfollow() {
       this.loading = true;
-      this.errormsg = null;
+      this.errorBanOrFollow = null;
       try {
         await this.$axios.delete("/users/" + sessionStorage.userID + "/following/" + this.user_id,  {
           headers: {
@@ -50,11 +53,12 @@ export default {
         this.followed = false;
         this.followers--;
       } catch (e) {
-        this.errormsg = e.toString();
+        this.errorBanOrFollow = e.toString();
       }
       this.loading = false;
     },
     async hasFollowed() {
+      this.errorBanOrFollow = null;
       try {
         await this.$axios.get("/users/" + sessionStorage.userID + "/following/" + this.user_id, {
           headers: {
@@ -64,18 +68,64 @@ export default {
         this.followed = true;
       } catch (e) {
         this.followed = false;
-        this.errormsg = e.toString();
       }
+    },
+    async hasBanned() {
+      this.loading = true;
+      try {
+        await this.$axios.get("/users/" + sessionStorage.userID + "/muted/" + this.user_id, {
+          headers: {
+            "Authorization": sessionStorage.userID,
+          },
+        });
+        this.hasBan = true;
+      } catch (e) {
+        if (e.response.status === 404) {
+          this.hasBan = false;
+        }
+      }
+    },
+    async ban() {
+      this.loading = true;
+      this.errorBanOrFollow = null;
+      try {
+        await this.$axios.put("/users/" + sessionStorage.userID + "/muted/" + this.user_id, {}, {
+          headers: {
+            "Authorization": sessionStorage.userID,
+          },
+        });
+        this.hasBan = true;
+      } catch (e) {
+        this.errorBanOrFollow = e.toString();
+      }
+      this.loading = false;
+    },
+    async unban() {
+      this.loading = true;
+      this.errorBanOrFollow = null;
+      try {
+        await this.$axios.delete("/users/" + sessionStorage.userID + "/muted/" + this.user_id,  {
+          headers: {
+            "Authorization": sessionStorage.userID,
+          },
+        });
+        this.hasBan = false;
+      } catch (e) {
+        this.errorBanOrFollow = e.toString();
+      }
+      this.loading = false;
     },
   },
   mounted() {
     this.isOwnerProfile();
     this.hasFollowed();
+    this.hasBanned();
   }
 }
 </script>
 
 <template>
+  <ErrorMsg v-if="errorBanOrFollow" :msg="errorBanOrFollow"/>
   <div class="d-flex flex-column w-100">
     <div class="d-flex flex-row w-100">
       <div class="d-flex flex-column w-25">
@@ -113,6 +163,18 @@ export default {
               <use href="/feather-sprite-v4.29.0.svg#user-minus"/>
             </svg>
             <span class="text-button">Followed</span>
+          </button>
+          <button type="button" class="btn btn-danger mx-2" v-if="!hasBan" @click="ban">
+            <svg class="feather align-sup add-icon">
+              <use href="/feather-sprite-v4.29.0.svg#slash"/>
+            </svg>
+            <span class="text-button">Ban</span>
+          </button>
+          <button type="button" class="btn btn-secondary mx-2" v-if="hasBan" @click="unban">
+            <svg class="feather align-sup add-icon">
+              <use href="/feather-sprite-v4.29.0.svg#slash"/>
+            </svg>
+            <span class="text-button">Unban</span>
           </button>
         </div>
       </div>

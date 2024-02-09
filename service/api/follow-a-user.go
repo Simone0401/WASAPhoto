@@ -105,7 +105,7 @@ func (rt *_router) followUser(w http.ResponseWriter, r *http.Request, params htt
 	if isBanned {
 		errorMessage := fmt.Sprintf("User %d has banned %d user. Cannot follow.", fuid, uid)
 		context.Logger.Error(errorMessage)
-		http.Error(w, "Cannot follow the user", http.StatusBadRequest)
+		http.Error(w, "Cannot follow the user", http.StatusForbidden)
 		return
 	}
 
