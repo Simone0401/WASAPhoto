@@ -55,7 +55,7 @@ export default {
               username: this.username,
             });
             sessionStorage.userID = response.data.user_id;
-            this.$router.push("/profile/" + sessionStorage.userID);
+            this.$router.push("/home");
             this.$emit("logged-in");
           } catch (e) {
             this.errormsg = "Error " + e.response.status + ": " + e.response.data;

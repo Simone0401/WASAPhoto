@@ -11,6 +11,7 @@ export default {
     likes: Number,
     comments: Array,
     uploadTime: String,
+    ofStream: Boolean,
   },
   data: function () {
     return {
@@ -26,6 +27,7 @@ export default {
       errno: null,
       likeIconFill: null,
       modalStatus: false,
+      usernameOwner: null,
     }
   },
   methods: {
@@ -138,10 +140,25 @@ export default {
       this.Comments = comments;
       this.numComments = this.getNumberComments();
     },
+    async getUsername() {
+      this.errormsg = null;
+      this.loading = true;
+      try {
+        let response = await this.$axios.get("/users/" + this.uid + "/username", {
+          headers: {
+            "Authorization": sessionStorage.userID,
+          },
+        });
+        this.usernameOwner = response.data.username;
+      } catch (e) {
+        this.errormsg = e.toString();
+      }
+    },
   },
   mounted() {
     this.getPostImage();
     this.getUserLike();
+    this.getUsername();
     this.numComments = this.getNumberComments();
   },
 }
@@ -157,6 +174,11 @@ export default {
     </div>
     <!-- Post information -->
     <div class="d-flex flex-row w-100 bt-1">
+      <div class="fit" v-if="ofStream"><span style="font-weight: bolder;">
+        <img src="https://picsum.photos/20/20" alt="User Avatar" class="avatar rounded-circle w-auto h-auto">
+        {{ usernameOwner }}
+      </span>
+      </div>
       <div class="fit">
         <svg class="feather align-sub like-icon" :id="'like-icon-' + postid" :style="'fill:' + likeIconFill" @click="toggleLike"><use href="/feather-sprite-v4.29.0.svg#heart"/></svg>
         <span>{{numLikes}}</span>
@@ -183,6 +205,7 @@ img {
 .fit {
   width: fit-content;
   padding-right: 10px;
+  margin-top: 0.25em;
 }
 .align-sub {
   vertical-align: sub;

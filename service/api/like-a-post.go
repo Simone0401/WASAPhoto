@@ -9,9 +9,10 @@ import (
 )
 
 // likePost allows a user to put like to a post.
-// If the user in not authorized, the request will fail.
+// If the user is not authorized, the request will fail.
 // If the user id doesn't exist, the request will fail.
 // If the post id doesn't exist, the request will fail.
+// If the post owner has banned the user, the request will fail.
 // If the request is OK, it will return User{} object who has put the like.
 // Note: a user can put like to his own post
 func (rt *_router) likePost(w http.ResponseWriter, r *http.Request, params httprouter.Params, context reqcontext.RequestContext) {
@@ -92,6 +93,40 @@ func (rt *_router) likePost(w http.ResponseWriter, r *http.Request, params httpr
 	if !check {
 		context.Logger.Error("Error in putting like request! Post doesn't exist")
 		http.Error(w, "Post seems not exist.", http.StatusNotFound)
+		return
+	}
+
+	// Check if post owner has not banned the user
+	// First of all, retrieve the post owner
+	postDB, err := rt.db.GetPost(postid)
+
+	if err != nil {
+		context.Logger.Error("Error retrieving post information in putting like request!\nDetail: ", err.Error())
+		http.Error(w, "Something wrong in the server", http.StatusInternalServerError)
+		return
+	}
+
+	var postAPI Post
+	err = postAPI.FromDatabase(postDB)
+
+	if err != nil {
+		context.Logger.Error("Error converting PostDB to PostAPI in putting like request!\nDetail: ", err.Error())
+		http.Error(w, "Something wrong in the server", http.StatusInternalServerError)
+		return
+	}
+
+	ownerid := postAPI.Uid
+	banned, err := rt.db.HasBanned(ownerid, uid)
+
+	if err != nil {
+		context.Logger.Error("Error retrieving ban information in putting comment request!\nDetail: ", err.Error())
+		http.Error(w, "Something wrong in the server", http.StatusInternalServerError)
+		return
+	}
+
+	if banned {
+		context.Logger.Error("User is banned by post owner in putting like request!")
+		http.Error(w, "You cannot put like", http.StatusForbidden)
 		return
 	}
 

@@ -1,43 +1,38 @@
 <script>
-import ProfileInformation from "../components/ProfileInformation.vue";
 import PostItem from "../components/PostItem.vue";
 import router from "../router";
 import LoadingSpinner from "../components/LoadingSpinner.vue";
 
 export default {
-  components: {LoadingSpinner, PostItem, ProfileInformation},
-	data: function() {
-		return {
-			errormsg: null,
-			loading: false,
-			profile: null,
+  name: "HomeView",
+  components: {LoadingSpinner, PostItem},
+  data: function() {
+    return {
+      errormsg: null,
+      loading: false,
+      stream: null,
       justifyContent: null,
       imageUrl: null,
       image: null,
-      btnUpload: false,
-		}
-	},
-	methods: {
-		async refresh() {
-			this.loading = true;
-			this.errormsg = null;
-      const url = window.location.href;
+    }
+  },
+  methods: {
+    async refresh() {
+      this.loading = true;
+      this.errormsg = null;
 
-      const parts = url.split("/");
-      const uid = parts[parts.length - 1];
-
-			try {
-				let response = await this.$axios.get("/users/" + uid + "/profile", {
+      try {
+        let response = await this.$axios.get("/users/" + sessionStorage.userID + "/mystream", {
           headers: {
             "Authorization": sessionStorage.userID,
           },
         });
-				this.profile = response.data;
+        this.stream = response.data;
         document.getElementById("log-out").style.display = "block";
         document.getElementById("search").style.display = "block";
         document.getElementById("profile").style.display = "block";
-			} catch (e) {
-				this.errormsg = e.toString();
+      } catch (e) {
+        this.errormsg = e.toString();
         let statusCode = e.response.status;
         if (statusCode === 401) {
           this.errormsg += ". Please log in again."
@@ -46,8 +41,8 @@ export default {
           }, 3000);
         }
       }
-			this.loading = false;
-		},
+      this.loading = false;
+    },
     moreElement() {
       try {
         if (this.profile.uploaded_post.length > 2) {
@@ -61,9 +56,9 @@ export default {
     },
     canUpload() {
       try {
-        this.btnUpload = this.profile.profile_info.user.user_id == sessionStorage.userID;
+        return this.profile.profile_info.user.user_id == sessionStorage.userID;
       } catch (e) {
-        this.btnUpload = false;
+        return false;
       }
     },
     uploadImage() {
@@ -106,54 +101,40 @@ export default {
         return "image/jpeg";
       }
       return null;
-    },
-    reload() {
-      location.reload();
-    },
-	},
-	mounted() {
-		this.refresh();
-    this.canUpload();
-	},
+    }
+  },
+  mounted() {
+    this.refresh();
+  },
   updated() {
     this.moreElement();
-    this.canUpload();
   }
 }
 </script>
 
 <template>
-	<div>
-		<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-			<h1 class="h2">Profile page</h1>
-			<div class="btn-toolbar mb-2 mb-md-0">
-				<div class="btn-group me-2">
-					<button type="button" class="btn btn-sm btn-outline-secondary" @click="reload">
-						Refresh
-					</button>
-				</div>
-			</div>
-		</div>
-
-		<ErrorMsg v-if="errormsg" :msg="errormsg"></ErrorMsg>
-	</div>
-  <div class="d-flex flex-wrap p-3 border-2">
-    <ProfileInformation v-if="profile" :user_id="profile.profile_info.user.user_id" :username="profile.profile_info.user.username" :numpost="profile.profile_info.numpost" :numfollowers="profile.profile_info.follower" :numfollowing="profile.profile_info.following"></ProfileInformation>
-    <div class="d-flex flex-column w-100 mt-5 custom-border">
-      <div class="d-flex flex-row w-100">
-        <div class="d-flex flex-row w-100">
-          <svg class="feather align-sub post-icon" style="width: 20px; height: 20px;"><use href="/feather-sprite-v4.29.0.svg#grid"/></svg>
+  <div>
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+      <h1 class="h2">Home page</h1>
+      <div class="btn-toolbar mb-2 mb-md-0">
+        <div class="btn-group me-2">
+          <button type="button" class="btn btn-sm btn-outline-secondary" @click="refresh">
+            Refresh
+          </button>
         </div>
       </div>
-      <div :class="'d-grid grid-post w-100 post-section ' + justifyContent" v-if="profile">
-          <PostItem class="img-thumbnail p-2 mx-4 mt-3" v-for="(post, index) in profile.uploaded_post" :key="index" :uid="post.uid" :postid="post.postid" :likes="post.likes" :uploadTime="post.upload_datetime" :comments="post.comments" :ofStream="false"></PostItem>
-      </div>
+    </div>
+    <ErrorMsg v-if="errormsg" :msg="errormsg"></ErrorMsg>
+  </div>
+  <div class="d-flex flex-wrap p-3">
+    <div class="d-grid grid-stream w-100" v-if="stream">
+      <PostItem class="p-2 mx-4 mt-3 img-thumbnail img-fluid" v-for="(post, index) in stream.posts" :key="index" :uid="post.uid" :postid="post.postid" :likes="post.likes" :uploadTime="post.upload_datetime" :comments="post.comments" :ofStream="true"></PostItem>
     </div>
   </div>
   <div class="mt-2 mb-4" v-if="loading">
     <LoadingSpinner :loading="true"></LoadingSpinner>
   </div>
-  <div class="btn-add" v-if="btnUpload">
+  <div class="btn-add" v-if="canUpload">
     <button class="btn btn-dark rounded-circle" @click="uploadImage">
       <svg class="feather align-sup add-icon">
         <use href="/feather-sprite-v4.29.0.svg#plus-square" class="mt-2"/>
@@ -164,11 +145,8 @@ export default {
 </template>
 
 <style>
-.post-section {
-  border-top: 1px solid #dee2e6;
-}
-.grid-post {
-  grid-template-columns: auto auto auto;
+.grid-stream {
+  grid-template-columns: auto;
 }
 .post-icon {
   margin-left: 11.2em;
@@ -208,5 +186,16 @@ export default {
   transform: translate(0px, 6px);
   width: 20px !important;
   height: 20px !important;
+}
+.grid-stream {
+  place-items: center;
+}
+.grid-stream .img-thumbnail .preview {
+  width: 40em;
+  height: 25em;
+  object-fit: contain;
+}
+.grid-stream .img-thumbnail .bt-1 {
+  margin-top: 0.5em !important;
 }
 </style>

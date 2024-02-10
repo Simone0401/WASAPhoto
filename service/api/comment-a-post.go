@@ -65,13 +65,13 @@ func (rt *_router) commentPost(w http.ResponseWriter, r *http.Request, params ht
 	// check if the user exists
 	check, err := rt.db.CheckExistsByUID(uid)
 	if err != nil {
-		context.Logger.Error("Error retrieving information on UID for putting like request!")
+		context.Logger.Error("Error retrieving information on UID for adding comment request!")
 		http.Error(w, "Something wrong in the server", http.StatusInternalServerError)
 		return
 	}
 
 	if !check {
-		context.Logger.Error("Error in putting like request! User doesn't exist!")
+		context.Logger.Error("Error in adding comment request! User doesn't exist!")
 		http.Error(w, "User seems not exist.", http.StatusNotFound)
 		return
 	}
@@ -80,7 +80,7 @@ func (rt *_router) commentPost(w http.ResponseWriter, r *http.Request, params ht
 	postid, err := strconv.ParseUint(params.ByName("postid"), 10, 64)
 
 	if err != nil {
-		context.Logger.Error("Error parsing postid in putting like request")
+		context.Logger.Error("Error parsing postid in adding comment request")
 		w.WriteHeader(http.StatusBadRequest)
 
 		response := map[string]string{
@@ -94,7 +94,7 @@ func (rt *_router) commentPost(w http.ResponseWriter, r *http.Request, params ht
 	// check if the post exists
 	check, err = rt.db.CheckPostByPostid(postid)
 	if err != nil {
-		context.Logger.Error("Error retrieving information on postid for putting like!\nDetail: ", err.Error())
+		context.Logger.Error("Error retrieving information on postid for adding comment request!\nDetail: ", err.Error())
 		http.Error(w, "Something wrong in the server", http.StatusInternalServerError)
 		return
 	}
@@ -102,6 +102,40 @@ func (rt *_router) commentPost(w http.ResponseWriter, r *http.Request, params ht
 	if !check {
 		context.Logger.Error("Error in putting like request! Post doesn't exist")
 		http.Error(w, "Post seems not exist.", http.StatusNotFound)
+		return
+	}
+
+	// Check if post owner has not banned the user
+	// First of all, retrieve the post owner
+	postDB, err := rt.db.GetPost(postid)
+
+	if err != nil {
+		context.Logger.Error("Error retrieving post information in adding comment request!\nDetail: ", err.Error())
+		http.Error(w, "Something wrong in the server", http.StatusInternalServerError)
+		return
+	}
+
+	var postAPI Post
+	err = postAPI.FromDatabase(postDB)
+
+	if err != nil {
+		context.Logger.Error("Error converting PostDB to PostAPI in adding comment request!\nDetail: ", err.Error())
+		http.Error(w, "Something wrong in the server", http.StatusInternalServerError)
+		return
+	}
+
+	ownerid := postAPI.Uid
+	banned, err := rt.db.HasBanned(ownerid, uid)
+
+	if err != nil {
+		context.Logger.Error("Error retrieving ban information in adding comment request!\nDetail: ", err.Error())
+		http.Error(w, "Something wrong in the server", http.StatusInternalServerError)
+		return
+	}
+
+	if banned {
+		context.Logger.Error("User is banned by post owner in adding comment request!")
+		http.Error(w, "You cannot comment", http.StatusForbidden)
 		return
 	}
 

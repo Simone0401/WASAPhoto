@@ -56,8 +56,19 @@ export default {
       this.$emit("close-modal");
       document.body.style.overflow = "scroll";
     },
-    getUsername() {
-      this.usernameOwner = document.getElementById("username-profile").innerHTML;
+    async getUsername() {
+      this.errormsg = null;
+      this.loading = true;
+      try {
+        let response = await this.$axios.get("/users/" + this.uid + "/username", {
+          headers: {
+            "Authorization": sessionStorage.userID,
+          },
+        });
+        this.usernameOwner = response.data.username;
+      } catch (e) {
+        this.errormsg = e.toString();
+      }
     },
     async removePost() {
       this.loading = true;
