@@ -19,6 +19,8 @@ export default {
       followers: this.numfollowers,
       following: this.numfollowing,
       hasBan: false,
+      wantChange: false,
+      usernameVar: this.username,
     }
   },
   methods: {
@@ -115,6 +117,72 @@ export default {
       }
       this.loading = false;
     },
+    toggleChangeUsername() {
+      if (this.wantChange) {
+        this.changeUsername();
+        this.wantChange = false;
+      } else {
+        this.wantChange = true;
+        setTimeout(() => {
+          document.getElementById("input-username").value = this.usernameVar;
+          document.getElementById("input-username").focus();
+        }, 100);
+      }
+    },
+    async changeUsername() {
+      this.loading = true;
+      this.errorBanOrFollow = null;
+      let newUsername = document.getElementById("input-username").value;
+      // Check if username is empty
+      if (newUsername == null || newUsername === "") {
+        this.errorBanOrFollow = "Username cannot be empty";
+        setTimeout(() => {
+          this.errorBanOrFollow = null;
+        }, 5000)
+      }
+      // Check if username is at least 3 char
+      else if (newUsername.length < 3) {
+        this.errorBanOrFollow = "Username must be at least 3 characters long";
+        setTimeout(() => {
+          this.errorBanOrFollow = null;
+        }, 5000);
+      }
+      // Check if username is at most 20 char
+      else if (newUsername.length > 20) {
+        this.errorBanOrFollow = "Username must be at most 20 characters long";
+        setTimeout(() => {
+          this.errorBanOrFollow = null;
+        }, 5000);
+      }
+      // Check if username regex is valid ^[a-zA-Z0-9.,!?;:'"\s]+$ (only letters, numbers, spaces and punctuation)
+      else if (!newUsername.match(/^[a-zA-Z0-9.,!?;:'"\b]+$/)) {
+        this.errorBanOrFollow= "Username can only contain letters, numbers and punctuation";
+        setTimeout(() => {
+          this.errorBanOrFollow = null;
+        }, 5000);
+      } else {
+        try {
+          await this.$axios.put("/users/" + sessionStorage.userID + "/username", {
+            username: newUsername,
+          }, {
+            headers: {
+              "Authorization": sessionStorage.userID,
+            },
+          });
+          this.usernameVar = newUsername;
+        } catch (e) {
+          if (e.response.status === 409) {
+            this.errorBanOrFollow = "Username already taken";
+          } else {
+            this.errorBanOrFollow = e.toString();
+          }
+          setTimeout(() => {
+            this.errorBanOrFollow = null;
+          }, 5000);
+        }
+      }
+      this.loading = false;
+    }
   },
   mounted() {
     this.isOwnerProfile();
@@ -134,7 +202,16 @@ export default {
       <div class="d-flex flex-column w-75">
         <div class="d-flex flex-row w-100">
           <div class="d-flex flex-column w-100">
-            <h1 class="fw-bolder" id="username-profile">{{ username }}</h1>
+            <div class="d-flex flex-row w-100">
+              <input type="text" name="" id="input-username" class="input-username" v-if="wantChange">
+              <h1 class="fw-bolder" id="username-profile" v-if="!wantChange">{{ usernameVar }}</h1>
+              <button type="button" class="btn btn-warning mx-3 h-75 m-auto" v-if="isOwner" @click="toggleChangeUsername">
+                <svg class="feather align-sup add-icon">
+                  <use href="/feather-sprite-v4.29.0.svg#edit-2"/>
+                </svg>
+                <span class="text-button">Change username</span>
+              </button>
+            </div>
             <div class="d-flex flex-row w-100 mt-2">
               <div class="d-flex flex-column w-50">
                 <h3>{{ numpost }}</h3>
@@ -188,5 +265,15 @@ export default {
   vertical-align: text-bottom;
   margin-left: 0.3em;
   top: -1px;
+}
+#username-profile {
+  margin-top: 0.5rem;
+}
+.input-username {
+  border: 1px solid #ced4da;
+  border-radius: 0.25rem;
+  margin-right: 0.5rem;
+  font-weight: bolder;
+  font-size: 2.5rem;
 }
 </style>

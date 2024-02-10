@@ -44,7 +44,7 @@ func (rt *_router) setUsername(w http.ResponseWriter, r *http.Request, params ht
 	// check if the current user is authorized
 	currentUid := context.Uid
 	if currentUid != uid {
-		context.Logger.Error("Error retrieving the current uid that makes uploading request")
+		context.Logger.Error("User is trying to change another user's username!")
 		w.WriteHeader(http.StatusForbidden)
 		return
 	}
@@ -71,7 +71,7 @@ func (rt *_router) setUsername(w http.ResponseWriter, r *http.Request, params ht
 	err = rt.db.SetUsername(userdb.Userid, user.Username)
 	if err != nil {
 		context.Logger.Error("Error setting the new username, already taken")
-		http.Error(w, "Username already taken. Username must be unique", http.StatusBadRequest)
+		http.Error(w, "Username already taken. Username must be unique", http.StatusConflict)
 		return
 	}
 
@@ -93,11 +93,7 @@ func (rt *_router) setUsername(w http.ResponseWriter, r *http.Request, params ht
 	// if the new username has been set, reply a success message and
 	// return the new user object
 	w.Header().Set("Content-Type", "application/json")
-	err = json.NewEncoder(w).Encode(user)
-	if err != nil {
-		context.Logger.Error("Error encoding User API to JSON Object")
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
 	w.WriteHeader(http.StatusOK)
+
+	_ = json.NewEncoder(w).Encode(user)
 }
