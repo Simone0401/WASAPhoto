@@ -3,13 +3,19 @@ FROM node:lts as builder
 # Copy Vue.js code
 WORKDIR /app
 COPY . .
-RUN rm -rf node_modules
+
+# Remove all node_modules and install only production dependencies for best compatibility
+RUN rm -rf webui/node_modules
+
+WORKDIR /app/webui
+
 RUN npm install
 ### Build Vue.js into plain HTML/CSS/JS
 RUN npm run build-prod
+
 ### Create final container
 FROM nginx:stable
 ### Copy the (built) app from the builder image
-COPY --from=builder /app/dist /usr/share/nginx/html
+COPY --from=builder /app/webui/dist /usr/share/nginx/html
 
 # To start docker: docker run --rm -p 8080:80 -it frontend:latest
