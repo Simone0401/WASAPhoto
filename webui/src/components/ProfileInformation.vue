@@ -186,8 +186,10 @@ export default {
   },
   mounted() {
     this.isOwnerProfile();
-    this.hasFollowed();
-    this.hasBanned();
+    if (!this.isOwner) {
+      this.hasFollowed();
+      this.hasBanned();
+    }
   }
 }
 </script>
