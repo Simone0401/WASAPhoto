@@ -69,7 +69,7 @@ func (rt *_router) getMyStream(w http.ResponseWriter, r *http.Request, params ht
 
 	// Prepare return struct
 	posts := map[string][]Post{
-		"posts": []Post{},
+		"posts": {},
 	}
 
 	// Get the stream
